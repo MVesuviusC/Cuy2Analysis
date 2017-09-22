@@ -9,7 +9,7 @@ library(reshape2)
 library(plyr)
 library(primerTree)
 theme_set(theme_bw())
-setwd('/SerreDLab/cannonm3/cuyahoga/')
+#setwd('/SerreDLab/cannonm3/cuyahoga/')
 ```
 
 
@@ -21,17 +21,13 @@ Matt
 
 ##################### blast.Rmd
 
-# Remove primers
+# Cut off primers, using the 14 5' bases, and kick out any primers that don't have a primer in the first 50bp, replacing sequence with "primerNotFound". Also if no primer is found, it is labeled as "noPrimer".
 
 ```{r, echo = F, cache = FALSE}
 read_chunk('~/SerreDLab-2/cannonm3/scripts/CutOffSequenceFromFastqV1.pl', labels = 'remove_primers')
 ```
 ```{r remove_primers, engine = 'perl', eval = FALSE, cache = FALSE}
 ```
-
-
-# Cut off primers, using the 14 5' bases, and kick out any primers that don't have a primer in the first 50bp, replacing sequence with "primerNotFound". Also if no primer is found, it is labeled as "noPrimer".
-
 
 ```{r parse_primers_results, engine = 'bash', eval = FALSE}
 parallel --nice 10 -j 40 perl /SerreDLab/cannonm3/scripts/CutOffSequenceFromFastqV2.pl 14 data/primers {} \> ~/cannonm3/tempdir/{/.} ::: /SerreDLab/raw_reads/2013-09-27_CASE/*fastq.gz
@@ -61,7 +57,6 @@ mv ~cannonm3/tempdir2/*.fastq lengthFiltered/
 ```
 
 # Filter out sequences where the read pairs have a difference in read length greater than 5
-
 ```{r, echo = F, cache = FALSE}
 read_chunk('~/SerreDLab-2/cannonm3/scripts/filterFastqPairsLength.pl', labels = 'filterFastqPairsLength')
 ```
@@ -80,16 +75,7 @@ gzip -f filteredFastq/*.fastq
 gzip -f lengthFiltered/*.fastq
 ```
 
-```{r countCheck, eval = FALSE, engine = 'bash'}
-for primer in AmpCB Giar18S Aves12S 23SrDNA COI_ZBJ_Art 16SArchaea Diatom18S trnL FishCB Cop28S FungusITS 16Smam BryoTrnL
-do
-  zgrep -c $primer filteredFastq/*.fastq.gz > counts/${primer}FilteredFastqCounts.txt
-done
-```
-
-
 # Pandaseq 
-
 ```{r, echo = F, cache = FALSE}
 read_chunk('~/SerreDLab-2/cannonm3/scripts/filterShortFasta.pl', labels = 'filterShortFasta')
 ```
@@ -125,21 +111,16 @@ rm ~/cannonm3/tempdir/*
 
 ## Get rid of samples from outside the river and controls
 ```{r tossOutUnwantedSamples, eval = FALSE, engine = 'bash'}
-# samples outside the river plus other crap
-#mv -t panda/unwanted/ panda/DS14.fasta.gz panda/DS16.fasta.gz panda/DS19.fasta.gz panda/DS2.fasta.gz panda/DS23.fasta.gz panda/DS29.fasta.gz panda/DS4.fasta.gz panda/DS44.fasta.gz panda/DS5.fasta.gz panda/DS53.fasta.gz panda/DS55.fasta.gz panda/DS56.fasta.gz panda/DS58.fasta.gz panda/DS61.fasta.gz panda/DS74.fasta.gz panda/DS81.fasta.gz panda/DS84.fasta.gz panda/DS96.fasta.gz
-
-# 
+# samples outside the river
 mv -t panda/unwanted/ panda/DS56.fasta.gz panda/DS16.fasta.gz
-
 ```
 
 
 ## Put all the fasta files together 
 Add the sample name to the file and combine.
 =====================================
-```{r blast_format, eval=FALSE, engine='bash'}
+```{r blast_format, eval = FALSE, engine = 'bash'}
 zcat panda/DS*fasta.gz | gzip > output/merged_products.fa.gz
-
 ```
 
 
@@ -164,7 +145,7 @@ read_chunk('~/SerreDLab-2/cannonm3/scripts/filterMothurByCount.pl', labels = 'fi
 ```{r filterMothurByCount, engine = 'perl', eval = FALSE, cache = FALSE}
 ```
 
-```{r filterMothur,eval=FALSE,engine='bash'}
+```{r filterMothur, eval = FALSE, engine = 'bash'}
 perl /SerreDLab/cannonm3/scripts/filterMothurByCount.pl 10 output/merged_products.names.gz output/merged_products.unique.fa.gz
 
 #writes out two files: output/merged_products.filtered.names  output/merged_products.unique.filtered.fa
@@ -177,14 +158,13 @@ perl /SerreDLab/cannonm3/scripts/filterMothurByCount.pl 10 output/merged_product
 
 
 ## Make reference OTU fasta files
-```{r makeOTUs,eval=TRUE,engine='bash'}
+```{r makeOTUs,eval = FALSE, engine = 'bash'}
 rm ~/cannonm3/tempdir/*
 # make reference OTU files for each primer
 for primer in 23SrDNA BryoTrnL COI_ZBJ_Art Cop28S Diatom18S FungusITS trnL
 do
   zgrep -A1 $primer ../output/merged_products.unique.fa.gz | grep -v "^--" | perl -pe 's/[\@:-]//g' | perl -pe 's/M.+P//' | perl -pe 's/\|.+//'> refOTUs/${primer}Seqs.fa
 done
-
 ```
 
 
@@ -203,7 +183,7 @@ read_chunk('~/SerreDLab-2/cannonm3/scripts/convertFastaToQiimeFasta.pl', labels 
 ```
 
 
-```{r convertPandaToFasta,eval=TRUE,engine='bash'}
+```{r convertPandaToFasta, eval = FALSE, engine = 'bash'}
 mkdir ~/cannonm3/tempdir/convertPanda/
 for primer in 23SrDNA BryoTrnL COI_ZBJ_Art Cop28S Diatom18S FungusITS trnL
 do
@@ -225,7 +205,7 @@ read_chunk('~/SerreDLab-2/cannonm3/scripts/keepFastasByHeader.pl', labels = 'kee
 ```
 
 
-```{r clusterOtus,eval=TRUE,engine='bash'}
+```{r clusterOtus, eval = FALSE, engine = 'bash'}
 zcat ../output/merged_products.names.gz | awk '{ print length, $0 }' | sort -rn | cut -d" " -f2- | cut -f 1,1 | perl -pe 's/\|.+//' | perl -pe 's/[\@:-]//g' | perl -pe 's/M0105.+ANP//g' | gzip > miscData/fastqHeadersSortedByAbundance.txt
 
 for primer in 23SrDNASeqs.fa BryoTrnLSeqs.fa COI_ZBJ_ArtSeqs.fa Cop28SSeqs.fa Diatom18SSeqs.fa FungusITSSeqs.fa trnLSeqs.fa
@@ -236,17 +216,15 @@ do
   perl scripts/keepFastasByHeader.pl refOTUs/$primer temp > refOTUs/${primer%Seqs.fa}95Clustered.fa
   rm temp
 done
-
 ```
 
-```{r blastOtus,eval=TRUE,engine='bash'}
+```{r blastOtus, eval = FALSE, engine = 'bash'}
 for file in refOTUs/*95Clustered.fa
 do
   nice blastn -task blastn -db /SerreDLab/blast_db/nt -query $file -negative_gilist ../data/uncultured_samples.gi -outfmt 7 -num_threads 50 | gzip > ~/cannonm3/tempdir/${file##*/}-blast.tab.gz
 done
 
 mv ~/cannonm3/tempdir/*blast.tab.gz reblast/ 
-
 ```
 
 ```{r, echo = F, cache = FALSE}
@@ -256,40 +234,38 @@ read_chunk('~/SerreDLab-2/cannonm3/scripts/parseReblast.pl', labels = 'parseRebl
 ```
 
 
-```{r parseBlastOtus,eval=TRUE,engine='bash'}
+```{r parseBlastOtus, eval = FALSE, engine = 'bash'}
 for file in refOTUs/*95Clustered.fa
 do
   base=${file%Clustered.fa}
   perl scripts/parseReblast.pl $file reblast/${file##*/}-blast.tab.gz > reblast/${base##*/}parsed.txt
   cut -f 1 reblast/${base##*/}parsed.txt | sort | uniq | grep -v gi > reblast/${base##*/}gis.txt
 done
-
 ```
 
 
-```{r getTaxa,eval=TRUE}
-files<-list.files(path="reblast/",pattern="*gis.txt")
+```{r getTaxa, eval = FALSE}
+files <- list.files(path = "reblast/", pattern = "*gis.txt")
 
 for(file in files){
-  data<-read.table(paste("reblast/",file,sep=""))
-  taxa<-get_taxonomy(data$V1) 
-  df<-data.frame(matrix(nrow=nrow(taxa),ncol=0))
-  df$gi<-taxa$gi
-  df$species<-taxa$species
-  df$kingdom<-taxa$kingdom
-  df$phylum<-taxa$phylum
-  df$class<-taxa$class
-  df$order<-taxa$order
-  df$family<-taxa$family
-  baseName<-gsub("gis.txt","",file)
-  write.table(df,file=paste("reblast/",baseName,"TaxaRaw.txt",sep=""),quote=F,sep="\t",col.names=T,row.names=F)
+  data <- read.table(paste("reblast/", file, sep = ""))
+  taxa <- get_taxonomy(data$V1) 
+  df <- data.frame(matrix(nrow = nrow(taxa), ncol = 0))
+  df$gi <- taxa$gi
+  df$species <- taxa$species
+  df$kingdom <- taxa$kingdom
+  df$phylum <- taxa$phylum
+  df$class <- taxa$class
+  df$order <- taxa$order
+  df$family <- taxa$family
+  baseName <- gsub("gis.txt", "", file)
+  write.table(df, file = paste("reblast/", baseName, "TaxaRaw.txt", sep = ""), quote = F, sep = "\t", col.names = T, row.names = F)
 }
 ```
 
 ## screen taxa files to toss out off-target sequences
-```{r screenTaxa,eval=TRUE,engine='bash'}
+```{r screenTaxa, eval = FALSE, engine = 'bash'}
 gawk -F"\t" 'BEGIN {OFS = "\t"} $4=="Bacillariophyta"{print $_}' reblast/23SrDNA95TaxaRaw.txt > reblast/23SrDNA95SubsetDiatomTaxa.txt
-
 
 ######################
 ####### Should not have included Streptophyta here --- Filter out during the PCAs
@@ -310,7 +286,6 @@ gawk -F"\t" 'BEGIN {OFS = "\t"} $4=="Xanthophyceae" || $4=="Chlorophyta"|| $4=="
 gawk -F"\t" 'BEGIN {OFS = "\t"} $3=="Fungi"{print $_}' reblast/FungusITS95TaxaRaw.txt > reblast/FungusITS95SubsetTaxa.txt
 
 gawk -F"\t" 'BEGIN {OFS = "\t"} $4=="Streptophyta" && $5!="Bryopsida"{print $_}' reblast/trnL95TaxaRaw.txt > reblast/trnL95SubsetTaxa.txt
-
 ```
 
 ```{r, echo = F, cache = FALSE}
@@ -320,7 +295,7 @@ read_chunk('~/SerreDLab-2/cannonm3/scripts/combineFilesByFirstXColumnsOrdered.pl
 ```
 
 
-```{r combineTaxaHeaders,eval=TRUE,engine='bash'}
+```{r combineTaxaHeaders, eval = FALSE, engine = 'bash'}
 for file in reblast/*Subset*Taxa.txt
 do
   base=${file%95Subset*}
@@ -329,20 +304,17 @@ do
   perl /SerreDLab/cannonm3/scripts/combineFilesByFirstXColumnsOrdered.pl 1 $file reblast/${base}95parsed.txt | cut -f 2 | sort | uniq > ${file%Taxa.txt}Headers.txt
   perl scripts/keepFastasByHeader.pl refOTUs/${base}Seqs.fa ${file%Taxa.txt}Headers.txt > refOTUs/95OTUs/${longerBase##*/}OTUs.fa
 done
-
-
 ```
 
-```{r tree95Otus,eval=TRUE,engine='bash'}
+```{r tree95Otus, eval = FALSE, engine = 'bash'}
 for file in refOTUs/95OTUs/*95Subset*OTUs.fa
 do
   base=${file##*/}
   clustalo --threads 40 -i $file | FastTree -fastest -nt > aligned/${base%OTUs.fa}.tre
 done
-  
 ```
 
-```{r blast95OtusCheck,eval=FALSE,engine='bash'}
+```{r blast95OtusCheck, eval = FALSE, engine = 'bash'}
 rm ~/cannonm3/tempdir/*
 for file in refOTUs/95OTUs/*.fa
 do
@@ -350,36 +322,41 @@ do
 done
 
 mv ~/cannonm3/tempdir/*blast.tab.gz blastCheck/ 
-
 ```
 
-```{r parseBlast95OtusCheck,eval=FALSE,engine='bash'}
+```{r, echo = F, cache = FALSE}
+read_chunk('~/SerreDLab-3/cannonm3/cuyahoga/qiimeOther/scripts/parseReblast.pl', labels = 'parseReblast')
+```
+```{r parseReblast, engine = 'perl', eval = FALSE, cache = FALSE}
+```
+
+
+```{r parseBlast95OtusCheck, eval = FALSE, engine = 'bash'}
 for file in refOTUs/95OTUs/*.fa
 do
   base=${file%OTUs.fa}
   perl scripts/parseReblast.pl $file blastCheck/${file##*/}-blast.tab.gz > blastCheck/${base##*/}parsed.txt
   cut -f 1 blastCheck/${base##*/}parsed.txt | sort | uniq | grep -v gi > blastCheck/${base##*/}gis.txt
 done
-
 ```
 
 
-```{r getTaxaCheck,eval=FALSE}
-files<-list.files(path="blastCheck/",pattern="*gis.txt")
+```{r getTaxaCheck, eval = FALSE}
+files<-list.files(path="blastCheck/", pattern = "*gis.txt")
 
 for(file in files){
-  data<-read.table(paste("blastCheck/",file,sep=""))
-  taxa<-get_taxonomy(data$V1) 
-  df<-data.frame(matrix(nrow=nrow(taxa),ncol=0))
-  df$gi<-taxa$gi
-  df$species<-taxa$species
-  df$kingdom<-taxa$kingdom
-  df$phylum<-taxa$phylum
-  df$class<-taxa$class
-  df$order<-taxa$order
-  df$family<-taxa$family
-  baseName<-gsub("gis.txt","",file)
-  write.table(df,file=paste("blastCheck/",baseName,"TaxaRaw.txt",sep=""),quote=F,sep="\t",col.names=T,row.names=F)
+  data <- read.table(paste("blastCheck/", file, sep = ""))
+  taxa <- get_taxonomy(data$V1) 
+  df <- data.frame(matrix(nrow = nrow(taxa), ncol = 0))
+  df$gi <- taxa$gi
+  df$species <- taxa$species
+  df$kingdom <- taxa$kingdom
+  df$phylum <- taxa$phylum
+  df$class <- taxa$class
+  df$order <- taxa$order
+  df$family <- taxa$family
+  baseName <- gsub("gis.txt", "", file)
+  write.table(df, file = paste("blastCheck/", baseName, "TaxaRaw.txt", sep = ""), quote = F, sep = "\t", col.names = T, row.names = F)
 }
 ```
 
@@ -388,15 +365,15 @@ for(file in files){
 ############################### from qiimeOtherAnalysisV3.Rmd
 
 
-```{r libraries, cache = FALSE}
-setwd('/home/matthewcannon/SerreDLab-3/cannonm3/cuyahoga/SecondPaper/')
+```{r libraries2, cache = FALSE}
+#setwd('/home/matthewcannon/SerreDLab-3/cannonm3/cuyahoga/SecondPaper/')
 library(ggplot2)
 library(ggmap)
 library(plyr)
 library(reshape2)
 #library(primerTree)
 theme_set(theme_bw())
-std <- function(x) sd(na.omit(x))/sqrt(length(na.omit(x)))
+std <- function(x) sd(na.omit(x)) / sqrt(length(na.omit(x)))
 ```
 
 
@@ -411,12 +388,18 @@ cp ../qiimeOther/parametersFile.txt reanalysis10_12_16/
 cp ../qiimeOther/inputFastas/*input.fna reanalysis10_12_16/inputFastas/
 # cp ../qiimeOther/reblast/*95parsed.txt reanalysis10_12_16/reblast/
 cp ../qiimeOther/mappingFile.txt reanalysis10_12_16/
-
 ```
 
 ## Parse out the blast results
 Changed the perl script to include a cutoff of 80% identity
-```{r parseBlastOtus, eval = FALSE, engine = 'bash'}
+
+```{r, echo = F, cache = FALSE}
+read_chunk('~/home/matthewcannon/SerreDLab-3/cannonm3/cuyahoga/SecondPaper/scripts/parseReblast.pl', labels = 'parseReblast2')
+```
+```{r parseReblast2, engine = 'perl', eval = FALSE, cache = FALSE}
+```
+
+```{r parseBlastOtus2, eval = FALSE, engine = 'bash'}
 for file in reanalysis10_12_16/refOTUs/*95Clustered.fa
 do
   base=${file%Clustered.fa}
@@ -428,7 +411,7 @@ done
 
 ## Get Taxa
 Not run, using previous data due to issues with primerTree installation on azathoth
-```{r getTaxa, eval = FALSE}
+```{r getTaxa2, eval = FALSE}
 files <- list.files(path = "reanalysis10_12_16/reblast/", pattern = "*gis.txt")
 
 for(file in files){
@@ -454,7 +437,7 @@ for(file in files){
 
 
 ## screen taxa files to toss out off-target sequences
-```{r screenTaxa, eval = FALSE, engine = 'bash'}
+```{r screenTaxa2, eval = FALSE, engine = 'bash'}
 # 23S primers
 gawk -F"\t" 'BEGIN {OFS = "\t"} $4=="Bacillariophyta" || $4=="Eustigmatophyceae" || $4=="Chlorophyta" || $4=="Phaeophyceae" || $5=="Cryptophyta" || $5=="Raphidophyceae" || $5=="Florideophyceae" || $5=="Compsopogonophyceae" || $6=="Phaeocystales" || $6=="Isochrysidales" {print $_}' reanalysis10_12_16/reblast/23SrDNA95TaxaRaw.txt > reanalysis10_12_16/reblast/23SrDNA95SubsetTaxa.txt
 
@@ -466,7 +449,7 @@ gawk -F"\t" 'BEGIN {OFS = "\t"} $3=="Fungi"{print $_}' reanalysis10_12_16/reblas
 ```
 
 # Make up reference OTU fasta files
-```{r combineTaxaHeaders, eval = FALSE, engine = 'bash'}
+```{r combineTaxaHeaders2, eval = FALSE, engine = 'bash'}
 for file in reanalysis10_12_16/reblast/*Subset*Taxa.txt
 do
   base=${file%95Subset*}
@@ -478,7 +461,7 @@ done
 ```
 
 # Make trees for QIIME analysis
-```{r tree95Otus, eval = FALSE, engine = 'bash'}
+```{r tree95Otus2, eval = FALSE, engine = 'bash'}
 for file in reanalysis10_12_16/refOTUs/95OTUs/*95Subset*OTUs.fa
 do 
   base=${file##*/}
@@ -488,10 +471,9 @@ done
 
 # Rerun QIIME analysis on other datasets
 ## pick OTUs
-```{r qiimeClosedRef, eval = TRUE, engine = 'bash'}
+```{r qiimeClosedRef, eval = FALSE, engine = 'bash'}
 source /usr/local/packages/Qiime-1.8.0/activate.sh
 
-pick_closed_reference_otus.py --version
 path=/home/matthewcannon/SerreDLab-3/cannonm3/cuyahoga/SecondPaper
  
 for file in reanalysis10_12_16/refOTUs/95OTUs/*
@@ -505,13 +487,11 @@ for directory in reanalysis10_12_16/otus/*
 do
   biom summarize-table -i $directory/otu_table.biom -o $directory/summaryOtu_table.txt 
   biom convert -i $directory/otu_table.biom -o $directory/otu_table.txt --biom-to-classic-table 
-#  biom summarize-table --qualitative -i $directory/otu_table.biom -o $directory/summaryOtu_tableQualitative.txt 
-#  tail -n +14 $directory/summaryOtu_tableQualitative.txt > $directory/summaryOtu_tableQualitativeTail.txt 
 done
 ```
 
 ## Calc alpha div for other datasets
-```{r qiimeAlphaRare, eval = TRUE, engine = 'bash'}
+```{r qiimeAlphaRare, eval = FALSE, engine = 'bash'}
 #23SrDNA95SubsetOTUs.fa     600
 #Diatom18S95SubsetOTUs.fa  1400
 #FungusITS95SubsetOTUs.fa        350
@@ -527,7 +507,7 @@ alpha_rarefaction.py -a -O 20 -e 350 -i ${path}/otus/FungusITS95SubsetOTUs.fa/ot
 ```
 
 ## Calc beta diversity for other datasets
-```{r qiimeBetaDiv, engine = 'bash', eval = TRUE}
+```{r qiimeBetaDiv, engine = 'bash', eval = FALSE}
 path=/home/matthewcannon/SerreDLab-3/cannonm3/cuyahoga/SecondPaper/reanalysis10_12_16
 source /usr/local/packages/Qiime-1.8.0/activate.sh
 
@@ -539,7 +519,7 @@ beta_diversity_through_plots.py --suppress_emperor_plots -e 350 -a -O 20 -i ${pa
 ```
 
 ## Convert biom tables to tab delimited
-```{r summarizeBdivTables, engine = 'bash', eval = TRUE}
+```{r summarizeBdivTables, engine = 'bash', eval = FALSE}
 source /usr/local/packages/Qiime-1.8.0/activate.sh
 
 for file in reanalysis10_12_16/diversity/*/bdiv/otu_table_even*.biom
@@ -555,7 +535,6 @@ done
 cp ../bacteriaAnalysis/qiime/input.fna reanalysis10_12_16/BA/inputFastas/bacteriaInput.fna
 cp ../bacteriaAnalysis/qiime/mappingFile.txt reanalysis10_12_16/BA/bacteriaMappingFile.txt
 cp ../bacteriaAnalysis/qiimeArchaea/16SArchaeaInput.fna reanalysis10_12_16/BA/inputFastas/
-
 ```
 
 ## Pick OTUs
@@ -568,7 +547,6 @@ pick_closed_reference_otus.py -a -O 20 -o ${path}/BA/otus/arch -i ${path}/BA/inp
 
 ## Bacteria
 pick_closed_reference_otus.py -a -O 20 -o ${path}/BA/otus/bact -i ${path}/BA/inputFastas/bacteriaInput.fna -r ~/SerreDLab-3/databases/gg_13_8_otus/rep_set/97_otus.fasta
-
 ```
 
 ```{r summarizeOtuCounts, engine = 'bash', eval = FALSE}
@@ -600,7 +578,7 @@ biom convert -i ${path}/BA/cda/bact/otu_table_even20000.biom -o ${path}/BA/cda/b
 
 # Subsample all datasets to 350 reads per sample for direct comparison
 ## Subsample
-```{r subsampleAllEvenly, engine = 'bash', eval = TRUE}
+```{r subsampleAllEvenly, engine = 'bash', eval = FALSE}
 path=/home/matthewcannon/SerreDLab-3/cannonm3/cuyahoga/SecondPaper
 source /usr/local/packages/Qiime-1.8.0/activate.sh
 # 350 reads per sample
@@ -613,7 +591,7 @@ done
 ```
 
 ## Convert biom tables to tab delimited
-```{r summarizeOTUTables, engine = 'bash', eval = TRUE}
+```{r summarizeOTUTables, engine = 'bash', eval = FALSE}
 path=/home/matthewcannon/SerreDLab-3/cannonm3/cuyahoga/SecondPaper
 source /usr/local/packages/Qiime-1.8.0/activate.sh
  
@@ -628,8 +606,8 @@ done
 ############################# From combinedPCAsV1.4.Rmd
 
 
-```{r libraries,cache=FALSE}
-setwd('/home/matthewcannon/SerreDLab-3/cannonm3/cuyahoga/SecondPaper')
+```{r libraries3, cache = FALSE}
+#setwd('/home/matthewcannon/SerreDLab-3/cannonm3/cuyahoga/SecondPaper')
 library(ggplot2)
 library(plyr)
 library(reshape2)
@@ -725,7 +703,6 @@ calcAccuracy <- function(df, nreps, nclust) {
   names(accuracy) <- colnames(df)[clusterColumns]
   return(as.data.frame(accuracy))
 }
-
 ```
 
 
@@ -747,8 +724,7 @@ done
 ```
 
 
-
-```{r pcaQuant, eval = TRUE}
+```{r pcaQuant, eval = FALSE}
 method <- "quant" 
 files <- list.files(path = 'reanalysis10_12_16/otuTables/', pattern = "*otu_table.txt")
       
@@ -821,7 +797,6 @@ archTaxa$genusSpecies <- paste(archTaxa$genus, archTaxa$species)
 ##
 #####
 
-
 pdf(file = "PCAQuantSelectUncentered2.pdf",width = 10, height = 8, pointsize = 6)
 
 for(otuTableName in files) {
@@ -837,7 +812,6 @@ for(otuTableName in files) {
   } else { 
     otuTable <- otuTable[otuTable$X.OTU.ID %in% otherTaxaTable$X.OTU.ID,]
   }
-  
   ###
   ########################
   
@@ -877,7 +851,6 @@ for(otuTableName in files) {
 
   ###
   ############
-  
   
   ############
   ### pairwise t-tests on data
@@ -923,7 +896,6 @@ for(otuTableName in files) {
   ###
   #############
   
-  
 #   dfRank <- rank(colSums(df))
 #   names(dfRank) <- 1:length(dfRank)
 #   dfRank <- sort(dfRank, decreasing = T)
@@ -956,7 +928,6 @@ for(otuTableName in files) {
   PrinComp <- merge(sampleInfo, PC)
   ###
   ##############
-  
   
   #################
   ### K-means clustering
@@ -993,7 +964,6 @@ for(otuTableName in files) {
   ###
   ################
 
-
   assign(paste("PrinComp", method, gsub(".txt", "", baseName), sep = "_"), PrinComp)
   write.table(PrinComp, 
               file = paste("reanalysis10_12_16/prinComps/", 
@@ -1026,7 +996,6 @@ for(otuTableName in files) {
   print(pairwise.t.test(PrinComp$PC3, PrinComp$Portion, p.adjust.method = "bonf"))
   print(pairwise.t.test(PrinComp$PC3, PrinComp$Rain, p.adjust.method = "bonf"))
 
-
   ##############
   ### Put taxa info into the loadings
   test <- as.data.frame(pcaOut$rotation)
@@ -1051,7 +1020,6 @@ for(otuTableName in files) {
               quote = F,
               sep = "\t", 
               row.names = F)
-  
   ###
   #############
 
@@ -1107,7 +1075,6 @@ for(otuTableName in files) {
 #     xlab("") + ylab("OTU count") +
 #     ggtitle(paste(baseName, "PC2 top OTUs", "\n")) )
   
-  
   #################
   ### plotting OTU abundance vs PCA loadings
   test$OTU <- rownames(test) # loadings
@@ -1146,8 +1113,6 @@ for(otuTableName in files) {
   ###
   ################
   
-  
-
   # print(plot(1,1,main="placeholder"))
   print("########################################\n\n\n")
   
@@ -1171,7 +1136,7 @@ write.table(allOtus, file = "allOtus.txt", quote = F, sep = "\t", row.names = F)
 ```
 
 # PCA with all OTUs
-```{r allOTUPCA, eval = TRUE}
+```{r allOTUPCA, eval = FALSE}
 pdf(file = "PCAQuantallOtus.pdf",width = 10, height = 8, pointsize = 6)
     
 allOtus <- read.delim("allOtus.txt", header = T)
@@ -1194,7 +1159,6 @@ PrinComp <- merge(sampleInfo, PC)
 ###
 ##############
  
-
 #################
 ### K-mean clustering
 nclust = 4
@@ -1226,10 +1190,8 @@ print(ggplot(PrinComp, aes(x=PC1, y=PC2, colour = as.factor(cluster), shape = pa
                 round(sum(ClusterAcc[grep("fake", rownames(ClusterAcc)), 1] >= ClusterAcc[1, 1]) / nsims, digits = 3), 
                 "\n",
                 sep = "")))
-
 ###
 ################
-
 
 print(paste("Number of OTUs: ", ncol(df)))
 
@@ -1252,9 +1214,8 @@ print(pairwise.t.test(PrinComp$PC3, paste(PrinComp$Portion, PrinComp$Rain), p.ad
 print(pairwise.t.test(PrinComp$PC3, PrinComp$Portion, p.adjust.method = "bonf"))
 print(pairwise.t.test(PrinComp$PC3, PrinComp$Rain, p.adjust.method = "bonf"))
 
-
 dev.off()
-  
+
 ##############
 ### Put taxa info into the loadings
 
@@ -1352,7 +1313,6 @@ df2testMeans <- merge(df2Ttests, df2Means)
 ###
 #############
 
-
 test <- as.data.frame(pcaOut$rotation)
 test$PC1rank <- rank(-1 * abs(test$PC1))
 test$PC2rank <- rank(-1 * abs(test$PC2))
@@ -1374,7 +1334,6 @@ write.table(test2,
 ```
 
 
-
 # PCA analysis on evenly subsampled datasets
 ## Read in all the OTU counts
 manually cut out first line of otu tables to get rid of header
@@ -1389,7 +1348,7 @@ done
 
 
 
-```{r pcaQuantEven, eval = TRUE}
+```{r pcaQuantEven, eval = FALSE}
 method <- "quant"
 files <- list.files(path = 'reanalysis10_12_16/evenSubsampleOtuTables/', pattern = "*Fixed.txt")
  
@@ -1402,8 +1361,6 @@ keptColumns <- c("X.OTU.ID", "Primer", "X1D01", "X1D02", "X1D03", "X1D04", "X1D0
                  "X2D29", "X2D30", "X2D31", "X2D32", "X2D33", "X2D34", "X2D35", "X2D36", "X2D37", "MC01", "MC02", "MC03", 
                  "MC04", "MC05", "MC06", "MC07", "MC08", "MC09", "MC10", "MC11", "MC12", "MC13", "MC14", "MC15")
 
-# But not these samples
-#  "X1D25", "X2D25", "X2D01", "X2D02", "X2D03", "X2D05", "X2D06", "X2D07", "X1D43", 
 sampleInfo <- read.delim("sampleInfo.txt")
 
 ########################
@@ -1461,9 +1418,6 @@ archTaxa$genusSpecies <- paste(archTaxa$genus, archTaxa$species)
 ##
 #####
 
-
-
-
 pdf(file = "PCAQuantSelectUncenteredEven.pdf",width = 10, height = 8, pointsize = 6)
 for(otuTableName in files) {
   baseName <- gsub("Fixed.txt", "", otuTableName)
@@ -1478,7 +1432,6 @@ for(otuTableName in files) {
   } else { 
     otuTable <- otuTable[otuTable$X.OTU.ID %in% otherTaxaTable$X.OTU.ID,]
   }
-  
   ###
   ########################
   
@@ -1503,12 +1456,9 @@ for(otuTableName in files) {
   if(baseName == "arch") {
     df <- df[grep("MC07", rownames(df), invert = T),]
   }
-
-  
   ###
   ########################
 
-  
   ############# Drop low frequency OTUs
   ### get rid of any OTUs < 1% in all samples
   dfPercents <- as.data.frame(t(apply(df, 1, function(x) x/sum(x))))
@@ -1533,7 +1483,6 @@ for(otuTableName in files) {
   ###
   ##############
   
-   
   #################
   ### K-mean clustering
   nclust = 4
@@ -1569,7 +1518,6 @@ for(otuTableName in files) {
   ###
   ################
 
-
   assign(paste("PrinComp", method, gsub(".txt", "", baseName), sep = "_"), PrinComp)
   print(paste("Number of OTUs: ", ncol(dfRed)))
   
@@ -1594,12 +1542,10 @@ for(otuTableName in files) {
   print(pairwise.t.test(PrinComp$PC3, PrinComp$Portion, p.adjust.method = "bonf"))
   print(pairwise.t.test(PrinComp$PC3, PrinComp$Rain, p.adjust.method = "bonf"))
 
-
   #print(plot(1,1,main="placeholder"))
   print("########################################\n\n\n")
 }
 dev.off()
-
 ```
 
 
@@ -1646,10 +1592,7 @@ print(ggplot(PC, aes(x = PC2, y = PC3, colour = PC)) +
     xlab(paste("PC2 (percent explained: ", round_any(as.numeric(explained[2]) * 100, accuracy = 0.1), "%)", sep = "")) +
     ylab(paste("PC3 (percent explained: ", round_any(as.numeric(explained[3]) * 100, accuracy = 0.1), "%)", sep = "")) 
     )
-
-
 ###
-
 
 for(i in 1:(length(files) - 1)) {
   for(j in (i + 1):length(files)) {
@@ -1675,8 +1618,15 @@ for(i in 1:(length(files) - 1)) {
   }
 }
 dev.off()
-
 ```
+
+
+```{r, echo = F, cache = FALSE}
+read_chunk('~/SerreDLab-3/cannonm3/scripts/collapseColumns.pl', labels = 'collapseColumns')
+```
+```{r collapseColumns, engine = 'perl', eval = FALSE, cache = FALSE}
+```
+
 
 ```{r collapseLoadingsTables, engine = 'bash', eval = FALSE}
 for file in loadingsTaxa/*Taxa.txt
@@ -1684,39 +1634,7 @@ do
   base=${file%.txt}
   perl ~/SerreDLab-3/cannonm3/scripts/collapseColumns.pl -u 1 -c "/" -i $file  | sort -k1,1r > ${base}Fixed.txt 
 done
-
 ```
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
