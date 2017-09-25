@@ -1,0 +1,3534 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
+  <meta name="generator" content="pandoc" />
+  <title></title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <!-- jQuery -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>
+  
+  <!-- bootstrap -->
+  <!--<link href="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css" rel="stylesheet"  id="style">-->
+  <script src="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>
+  
+  <!-- highlight.js -->
+  <!--<link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/7.3/styles/default.min.css" rel="stylesheet" id="code-style">-->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/7.3/highlight.min.js"></script>
+  <script>
+  hljs.LANGUAGES.r=function(a){var b="([a-zA-Z]|\\.[a-zA-Z.])[a-zA-Z0-9._]*";return{c:[a.HCM,{b:b,l:b,k:{keyword:"function if in break next repeat else for return switch while try tryCatch|10 stop warning require library attach detach source setMethod setGeneric setGroupGeneric setClass ...|10",literal:"NULL NA TRUE FALSE T F Inf NaN NA_integer_|10 NA_real_|10 NA_character_|10 NA_complex_|10"},r:0},{cN:"number",b:"0[xX][0-9a-fA-F]+[Li]?\\b",r:0},{cN:"number",b:"\\d+(?:[eE][+\\-]?\\d*)?L\\b",r:0},{cN:"number",b:"\\d+\\.(?!\\d)(?:i\\b)?",r:0},{cN:"number",b:"\\d+(?:\\.\\d*)?(?:[eE][+\\-]?\\d*)?i?\\b",r:0},{cN:"number",b:"\\.\\d+(?:[eE][+\\-]?\\d*)?i?\\b",r:0},{b:"`",e:"`",r:0},{cN:"string",b:'"',e:'"',c:[a.BE],r:0},{cN:"string",b:"'",e:"'",c:[a.BE],r:0}]}}(hljs); </script>
+  <!--<script type="text/javascript", src="https://yandex.st/highlightjs/7.3/languages/r.min.js"></script>-->
+  
+  <!-- Manific Popup -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/magnific-popup.js/0.8.9/jquery.magnific-popup.min.js"></script>
+  
+  <script type="text/javascript"
+    src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+  </script>
+  <script defer="defer">
+  // Function to generate the dynamic table of contents
+  jQuery.fn.generate_TOC = function () {
+    var base = $(this[0]);
+  
+    var selectors = ['h1', 'h2', 'h3', 'h4'];
+  
+    var last_ptr = [{}, {}, {}, {}];
+  
+    var anchors = {};
+  
+    generate_anchor = function (text) {
+      var test = text.replace(/\W/g, '_');
+  
+      while(test in anchors){
+        //if no suffix, add one
+        if(test.match(/_\d+$/) === null){
+          test = test + "_2";
+        }
+        //else generate unique id for duplicates by adding one to the suffix
+        else {
+          test = test.replace(/_(\d+)$/, function(match, number){ var num=+number+1; return("_" + num) });
+        }
+      }
+      anchors[test]=1;
+      return(test);
+    }
+  
+    $(selectors.join(',')).filter(function(index) { return $(this).parent().attr("id") != 'header'; }).each(function () {
+  
+      var heading = $(this);
+      var idx = selectors.indexOf(heading.prop('tagName').toLowerCase());
+      var itr = 0;
+  
+      while (itr <= idx) {
+        if (jQuery.isEmptyObject(last_ptr[itr])) {
+          last_ptr[itr] = $('<ul>').addClass('nav');
+          if (itr === 0) {
+            base.append(last_ptr[itr])
+          } else {
+            if(last_ptr[itr-1].children('li').length === 0){
+              last_ptr[itr-1].append(last_ptr[itr]);
+            }
+            else {
+              last_ptr[itr - 1].children('li').last().append(last_ptr[itr]);
+            }
+          }
+        }
+        itr++;
+      }
+      var anchor = generate_anchor(heading.text());
+      heading.attr('id', anchor);
+      var a = $('<a>')
+      .text(heading.text())
+      .attr('href', '#' + anchor);
+  
+    var li = $('<li>')
+      .append(a);
+  
+    last_ptr[idx].append(li);
+    for (i = idx + 1; i < last_ptr.length; i++) {
+      last_ptr[i] = {};
+    }
+    });
+  }
+  /* run scripts when document is ready */
+  $(function() {
+    "use strict";
+  
+    var $window = $(window);
+    var $body = $(document.body);
+  
+    /* size of thumbnails */
+  
+    var hidden_types = ['source']
+    var output_types = ['output', 'message', 'warning', 'error']
+  
+    /* style tables */
+    $('table').addClass('table table-striped table-bordered table-hover table-condensed');
+  
+    $('pre code').each(function(i, e) {
+      hljs.highlightBlock(e);
+    });
+  
+    /* Magnific Popup */
+    $(".thumbnail").each(function(){
+      $(this).magnificPopup({
+        disableOn: 768,
+        closeOnContentClick: true,
+  
+        type: 'image',
+        items: {
+          src: $(this).find('img').attr('src'),
+        }
+      });
+    });
+  
+    function toggle_block(obj, show) {
+      var span = obj.find('span');
+      if(show === true){
+        span.removeClass('glyphicon-chevron-up').addClass('glyphicon-chevron-down');
+        obj.next('pre').slideDown();
+      }
+      else {
+        span.removeClass('glyphicon-chevron-down').addClass('glyphicon-chevron-up');
+        obj.next('pre').slideUp();
+      }
+    }
+  
+    function toggle_thumbnails(imgs, show){
+      if(show === true){
+        imgs.parents().show()
+        imgs.slideDown();
+      }
+      else {
+        imgs.slideUp(400, function(){ $(this).parent().hide(); });
+      }
+    }
+  
+    function global_toggle(obj){
+      var type = obj.attr('type');
+      var show = !obj.parent('li').hasClass('active');
+      if(show === true){
+        obj.parent('li').addClass('active');
+      }
+      else{
+        obj.parent('li').removeClass('active');
+      }
+      if(type == 'figure'){
+        toggle_thumbnails($('.thumbnail img'), show);
+      }
+      else {
+        $('.toggle.' + type).each(function() { toggle_block($(this), show); });
+      }
+    }
+  
+    /* onclick toggle next code block */
+    $('.toggle').click(function() {
+      var span = $(this).find('span');
+      toggle_block($(this), !span.hasClass('glyphicon-chevron-down'));
+      return false
+    })
+  
+    // global toggles
+    $('.toggle-global').click(function(){
+      var type = $(this).attr('type');
+      if(type === 'all-source'){
+          $('li a.source').each(function() {
+            global_toggle($(this));
+          });
+        }
+      else if(type === 'all-output'){
+        $.each(output_types, function(i, val){
+          console.log(val);
+          global_toggle($('li a.' + val));
+        });
+      }
+      else {
+        console.log($(this));
+        global_toggle($(this));
+      }
+      return false;
+    });
+    /* table of contents */
+    if($(['h1', 'h2', 'h3', 'h4'].join(',')).length > 0){
+      $('body > #wrap > .container > .row').append('<div class="col-md-2"><div id="toc" class="well sidebar sidenav affix hidden-print"/></div>');
+      $('#toc').generate_TOC();
+    }
+  
+    $.each(hidden_types, function(i, type) {
+      $('li[type=' + type + ']').each(function(){ global_toggle($(this)); });
+    });
+  
+    /* remove paragraphs with no content */
+    $('p:empty').remove();
+  
+    $body.scrollspy({
+      target: '.sidebar',
+    });
+  
+    /* theme switch */
+    $('.theme-switch').click(function(){
+      var css = $('link[title=' + $(this).attr('title') + ']');
+      $('#theme[rel=stylesheet]').attr('href', css.attr('href'));
+      $('.theme-switch').closest('li').removeClass('active');
+      $(this).closest('li').addClass('active');
+      return false;
+    });
+    /* code style switch */ //TODO use same function for both of these?
+    $('.highlight-switch').click(function(){
+      var css = $('link[title="' + $(this).attr('title') + '"]');
+      $('#highlight[rel=stylesheet]').attr('href', css.attr('href'));
+      $('.highlight-switch').closest('li').removeClass('active');
+      $(this).closest('li').addClass('active');
+      return false;
+    });
+  
+    //TODO refresh on show/hide
+    $window.on('load', function () {
+      $body.scrollspy('refresh');
+    })
+  
+  });
+  
+  </script>
+  <style>
+  /* Knitr_bootstrap styles */
+  #header {
+    display: none !important;
+    visibility: hidden !important;
+  }
+  #wrap .container-fluid {
+    padding: 0;
+    overflow: hidden;
+  }
+  .toggle{
+    text-transform: capitalize;
+  }
+  
+  .toggle-global{
+    text-transform: capitalize;
+  }
+  
+  /* Sticky footer styles */
+  * {
+    margin:0;
+  }
+  html,
+  body {
+      height: 100%;
+      padding:0 !important;
+      /* The html and body elements cannot have any padding or margin. */
+      /*overflow-x: hidden;*/
+  }
+  
+  /* Wrapper for page content to push down footer */
+  #wrap {
+      min-height: 100%;
+      height: auto !important;
+      height: 100%;
+      /* Negative indent footer by it's height */
+      margin: 0 auto -120px;
+  }
+  
+  /* Set the fixed height of the footer here */
+  #push,
+  #footer {
+      height: 120px;
+  }
+  
+  #footer {
+    text-align: center;
+  }
+  
+  /* Top level subheader elements.  These are the first nested items underneath a header element. */
+  .header li {
+    font-size: 20px;
+  }
+  
+  /* Makes the font smaller for all subheader elements. */
+  .sub-header li {
+      font-size: 12px;
+  }
+  
+  button.thumbnails {
+    margin-left:0px;
+  }
+  
+  /*
+   * Side navigation
+   *
+   * Scrollspy and affixed enhanced navigation to highlight sections and secondary
+   * sections of docs content.
+   */
+  
+  /* By default it's not affixed in mobile views, so undo that */
+  .sidebar.affix {
+    position: static;
+  }
+  
+  /* First level of nav */
+  .sidenav {
+    margin-top: 30px;
+    margin-bottom: 30px;
+    padding-top:    10px;
+    padding-bottom: 10px;
+    border-radius: 5px;
+  }
+  
+  /* All levels of nav */
+  .sidebar .nav > li > a {
+    display: block;
+    padding: 5px 20px;
+  }
+  .sidebar .nav > li > a:hover,
+  .sidebar .nav > li > a:focus {
+    text-decoration: none;
+    border-right: 1px solid;
+  }
+  .sidebar .nav > .active > a,
+  .sidebar .nav > .active:hover > a,
+  .sidebar .nav > .active:focus > a {
+    font-weight: bold;
+    background-color: transparent;
+    border-right: 1px solid;
+  }
+  
+  /* Nav: second level (shown on .active) */
+  .sidebar .nav .nav {
+    display: none; /* Hide by default, but at >768px, show it */
+    margin-bottom: 8px;
+  }
+  .sidebar .nav .nav > li > a {
+    padding-top:    3px;
+    padding-bottom: 3px;
+    padding-left: 30px;
+    font-size: 90%;
+  }
+  
+  .sidebar .nav .nav .nav > li > a {
+    padding-left: 40px;
+  }
+  .sidebar .nav .nav .nav .nav > li > a {
+    padding-left: 50px;
+  }
+  
+  /* Show and affix the side nav when space allows it */
+  @media screen and (min-width: 992px) {
+    .sidebar .nav > .active > ul {
+      display: block;
+    }
+    /* Widen the fixed sidebar */
+    .sidebar.affix,
+    .sidebar.affix-bottom {
+      width: 213px;
+    }
+    .sidebar.affix-top,
+    .sidebar.affix {
+      position: fixed; /* Undo the static from mobile first approach */
+      top: 30px;
+    }
+    .sidebar.affix-bottom {
+      position: absolute; /* Undo the static from mobile first approach */
+    }
+    .sidebar.affix-bottom .sidenav,
+    .sidebar.affix .sidenav {
+      margin-top: 0;
+      margin-bottom: 0;
+    }
+  }
+  @media screen and (min-width: 1200px) {
+    /* Widen the fixed sidebar again */
+    .sidebar.affix-bottom,
+    .sidebar.affix {
+      width: 263px;
+    }
+  }
+  
+  #toc {
+    padding: 10px 0px;
+    margin:0;
+    border:0;
+  }
+  
+  
+  .panel pre {
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+  button + pre {
+    margin: 0;
+    padding: 0;
+  }
+  pre code {
+    border-radius: 0;
+  }
+  /* Magnific Popup CSS */
+  .mfp-bg {
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1042;
+    overflow: hidden;
+    position: fixed;
+    background: #0b0b0b;
+    opacity: 0.8;
+    filter: alpha(opacity=80); }
+  
+  .mfp-wrap {
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1043;
+    position: fixed;
+    outline: none !important;
+    -webkit-backface-visibility: hidden; }
+  
+  .mfp-container {
+    text-align: center;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    left: 0;
+    top: 0;
+    padding: 0 8px;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box; }
+  
+  .mfp-container:before {
+    content: '';
+    display: inline-block;
+    height: 100%;
+    vertical-align: middle; }
+  
+  .mfp-align-top .mfp-container:before {
+    display: none; }
+  
+  .mfp-content {
+    position: relative;
+    display: inline-block;
+    vertical-align: middle;
+    margin: 0 auto;
+    text-align: left;
+    z-index: 1045; }
+  
+  .mfp-inline-holder .mfp-content,
+  .mfp-ajax-holder .mfp-content {
+    width: 100%;
+    cursor: auto; }
+  
+  .mfp-ajax-cur {
+    cursor: progress; }
+  
+  .mfp-zoom-out-cur,
+  .mfp-zoom-out-cur .mfp-image-holder .mfp-close {
+    cursor: -moz-zoom-out;
+    cursor: -webkit-zoom-out;
+    cursor: zoom-out; }
+  
+  .mfp-zoom {
+    cursor: pointer;
+    cursor: -webkit-zoom-in;
+    cursor: -moz-zoom-in;
+    cursor: zoom-in; }
+  
+  .mfp-auto-cursor .mfp-content {
+    cursor: auto; }
+  
+  .mfp-close,
+  .mfp-arrow,
+  .mfp-preloader,
+  .mfp-counter {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    user-select: none; }
+  
+  .mfp-loading.mfp-figure {
+    display: none; }
+  
+  .mfp-hide {
+    display: none !important; }
+  
+  .mfp-preloader {
+    color: #cccccc;
+    position: absolute;
+    top: 50%;
+    width: auto;
+    text-align: center;
+    margin-top: -0.8em;
+    left: 8px;
+    right: 8px;
+    z-index: 1044; }
+  
+  .mfp-preloader a {
+    color: #cccccc; }
+  
+  .mfp-preloader a:hover {
+    color: white; }
+  
+  .mfp-s-ready .mfp-preloader {
+    display: none; }
+  
+  .mfp-s-error .mfp-content {
+    display: none; }
+  
+  button.mfp-close,
+  button.mfp-arrow {
+    overflow: visible;
+    cursor: pointer;
+    background: transparent;
+    border: 0;
+    -webkit-appearance: none;
+    display: block;
+    padding: 0;
+    z-index: 1046;
+    -webkit-box-shadow: none;
+    box-shadow: none; }
+  
+  button::-moz-focus-inner {
+    padding: 0;
+    border: 0; }
+  
+  .mfp-close {
+    width: 44px;
+    height: 44px;
+    line-height: 44px;
+    position: absolute;
+    right: 0;
+    top: 0;
+    text-decoration: none;
+    text-align: center;
+    opacity: 0.65;
+    padding: 0 0 18px 10px;
+    color: white;
+    font-style: normal;
+    font-size: 28px;
+    font-family: Arial, Baskerville, monospace; }
+    .mfp-close:hover, .mfp-close:focus {
+      opacity: 1; }
+    .mfp-close:active {
+      top: 1px; }
+  
+  .mfp-close-btn-in .mfp-close {
+    color: #333333; }
+  
+  .mfp-image-holder .mfp-close,
+  .mfp-iframe-holder .mfp-close {
+    color: white;
+    right: -6px;
+    text-align: right;
+    padding-right: 6px;
+    width: 100%; }
+  
+  .mfp-counter {
+    position: absolute;
+    top: 0;
+    right: 0;
+    color: #cccccc;
+    font-size: 12px;
+    line-height: 18px; }
+  
+  .mfp-arrow {
+    position: absolute;
+    opacity: 0.65;
+    margin: 0;
+    top: 50%;
+    margin-top: -55px;
+    padding: 0;
+    width: 90px;
+    height: 110px;
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0); }
+  
+  .mfp-arrow:active {
+    margin-top: -54px; }
+  
+  .mfp-arrow:hover,
+  .mfp-arrow:focus {
+    opacity: 1; }
+  
+  .mfp-arrow:before, .mfp-arrow:after,
+  .mfp-arrow .mfp-b,
+  .mfp-arrow .mfp-a {
+    content: '';
+    display: block;
+    width: 0;
+    height: 0;
+    position: absolute;
+    left: 0;
+    top: 0;
+    margin-top: 35px;
+    margin-left: 35px;
+    border: medium inset transparent; }
+  .mfp-arrow:after,
+  .mfp-arrow .mfp-a {
+    border-top-width: 13px;
+    border-bottom-width: 13px;
+    top: 8px; }
+  .mfp-arrow:before,
+  .mfp-arrow .mfp-b {
+    border-top-width: 21px;
+    border-bottom-width: 21px; }
+  
+  .mfp-arrow-left {
+    left: 0; }
+    .mfp-arrow-left:after,
+    .mfp-arrow-left .mfp-a {
+      border-right: 17px solid white;
+      margin-left: 31px; }
+    .mfp-arrow-left:before,
+    .mfp-arrow-left .mfp-b {
+      margin-left: 25px;
+      border-right: 27px solid #3f3f3f; }
+  
+  .mfp-arrow-right {
+    right: 0; }
+    .mfp-arrow-right:after,
+    .mfp-arrow-right .mfp-a {
+      border-left: 17px solid white;
+      margin-left: 39px; }
+    .mfp-arrow-right:before,
+    .mfp-arrow-right .mfp-b {
+      border-left: 27px solid #3f3f3f; }
+  
+  .mfp-iframe-holder {
+    padding-top: 40px;
+    padding-bottom: 40px; }
+  
+  .mfp-iframe-holder .mfp-content {
+    line-height: 0;
+    width: 100%;
+    max-width: 900px; }
+  
+  .mfp-iframe-scaler {
+    width: 100%;
+    height: 0;
+    overflow: hidden;
+    padding-top: 56.25%; }
+  
+  .mfp-iframe-scaler iframe {
+    position: absolute;
+    display: block;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    box-shadow: 0 0 8px rgba(0, 0, 0, 0.6);
+    background: black; }
+  
+  .mfp-iframe-holder .mfp-close {
+    top: -40px; }
+  
+  /* Main image in popup */
+  img.mfp-img {
+    width: auto;
+    max-width: 100%;
+    height: auto;
+    display: block;
+    line-height: 0;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+    padding: 40px 0 40px;
+    margin: 0 auto; }
+  
+  /* The shadow behind the image */
+  .mfp-figure:after {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 40px;
+    bottom: 40px;
+    display: block;
+    right: 0;
+    width: auto;
+    height: auto;
+    z-index: -1;
+    box-shadow: 0 0 8px rgba(0, 0, 0, 0.6);
+    background: #444444; }
+  
+  .mfp-figure {
+    line-height: 0; }
+  
+  .mfp-bottom-bar {
+    margin-top: -36px;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    cursor: auto; }
+  
+  .mfp-title {
+    text-align: left;
+    line-height: 18px;
+    color: #f3f3f3;
+    word-wrap: break-word;
+    padding-right: 36px; }
+  
+  .mfp-figure small {
+    color: #bdbdbd;
+    display: block;
+    font-size: 12px;
+    line-height: 14px; }
+  
+  .mfp-image-holder .mfp-content {
+    max-width: 100%; }
+  
+  .mfp-gallery .mfp-image-holder .mfp-figure {
+    cursor: pointer; }
+  
+  @media screen and (max-width: 800px) and (orientation: landscape), screen and (max-height: 300px) {
+    /**
+     * Remove all paddings around the image on small screen
+     */
+    .mfp-img-mobile .mfp-image-holder {
+      padding-left: 0;
+      padding-right: 0; }
+  
+    .mfp-img-mobile img.mfp-img {
+      padding: 0; }
+  
+    /* The shadow behind the image */
+    .mfp-img-mobile .mfp-figure:after {
+      top: 0;
+      bottom: 0; }
+  
+    .mfp-img-mobile .mfp-bottom-bar {
+      background: rgba(0, 0, 0, 0.6);
+      bottom: 0;
+      margin: 0;
+      top: auto;
+      padding: 3px 5px;
+      position: fixed;
+      -webkit-box-sizing: border-box;
+      -moz-box-sizing: border-box;
+      box-sizing: border-box; }
+  
+    .mfp-img-mobile .mfp-bottom-bar:empty {
+      padding: 0; }
+  
+    .mfp-img-mobile .mfp-counter {
+      right: 5px;
+      top: 3px; }
+  
+    .mfp-img-mobile .mfp-close {
+      top: 0;
+      right: 0;
+      width: 35px;
+      height: 35px;
+      line-height: 35px;
+      background: rgba(0, 0, 0, 0.6);
+      position: fixed;
+      text-align: center;
+      padding: 0; }
+  
+    .mfp-img-mobile .mfp-figure small {
+      display: inline;
+      margin-left: 5px; } }
+  @media all and (max-width: 900px) {
+    .mfp-arrow {
+      -webkit-transform: scale(0.75);
+      transform: scale(0.75); }
+  
+    .mfp-arrow-left {
+      -webkit-transform-origin: 0;
+      transform-origin: 0; }
+  
+    .mfp-arrow-right {
+      -webkit-transform-origin: 100%;
+      transform-origin: 100%; }
+  
+    .mfp-container {
+      padding-left: 6px;
+      padding-right: 6px; } }
+  .mfp-ie7 .mfp-img {
+    padding: 0; }
+  .mfp-ie7 .mfp-bottom-bar {
+    width: 600px;
+    left: 50%;
+    margin-left: -300px;
+    margin-top: 5px;
+    padding-bottom: 5px; }
+  .mfp-ie7 .mfp-container {
+    padding: 0; }
+  .mfp-ie7 .mfp-content {
+    padding-top: 44px; }
+  .mfp-ie7 .mfp-close {
+    top: 0;
+    right: 0;
+    padding-top: 0; }
+  
+  //Magnific overrides
+  .mfp-image img{
+    background: white;
+  }
+  .mfp-figure:after {
+    background: white;
+  }
+  
+  /*
+   * Off Canvas navbar toggle right
+   * --------------------------------------------------
+   */
+  
+  @media screen and (max-width: 768px) {
+    .row-offcanvas .collapsing {
+    -webkit-transition: none 0;
+      -moz-transition: none 0;
+      transition: none 0;
+    }
+   .row-offcanvas .navbar {
+    position: absolute;
+    z-index: 2;
+      right:0;
+      height:100%;
+      width:55px;
+      border:0;
+      background-color:transparent;
+    }
+    .row-offcanvas .navbar-toggle {
+      margin-right: 5px;
+      margin-left: 5px;
+    }
+    .row-offcanvas {
+      position: relative;
+    }
+    .row-offcanvas-right.active .navbar {
+    position: absolute;
+    z-index: 2;
+      right: -28.4%;
+      width:40%;
+      background-color:#eee;
+      border:0 solid #ddd;
+      border-left-width:1px;
+    }
+    .row-offcanvas-right.active {
+      left: -30%;
+    }
+    .row-offcanvas-right.active .navbar-collapse {
+      position: relative;
+      width: 100%;
+    }
+    .row-offcanvas .content {
+    /*width:calc(100% - 60px);*/
+    }
+  }
+  </style>
+</head>
+<body>
+<div id="wrap">
+<div class="container">
+<div class="row row-offcanvas row-offcanvas-right">
+<div class="contents col-xs-12 col-md-10">
+<h1 id="load-libraries">Load libraries</h1>
+<div class="row">
+<button class="source R toggle btn btn-xs btn-primary">
+<span class="glyphicon glyphicon-chevron-down"></span> R source
+</button>
+<pre style=""><code class="source r">library(ggplot2)
+library(ape)
+library(reshape2)
+library(plyr)
+library(primerTree)
+theme_set(theme_bw())
+#setwd('/SerreDLab/cannonm3/cuyahoga/')</code></pre>
+</div>
+<h1 id="overview">Overview</h1>
+<p>This document summarizes the pipeline used to analyze the data presented in the paper &quot;Dynamic microbial populations along the Cuyahoga River.&quot; by Cannon et al. The original analyses were done over a period of time and included portions of three separate pipelines run from three different directories. Additionally, the final portion of the analysis was run after the lab moved to UMB and the data was transferred, altering the directory structure. For these reasons the pipeline here should in no way be considered a &quot;plug and play&quot; pipeline, as the directory structure for different parts of the analysis will not match. I have maintained the directory structures as is (except the location of Perl scripts to allow for them to be included in the document) so as not to alter the analysis from its original form. The purpose of this document is not to provide a pipeline that can be run with no modifications but rather for two primary reasons. Firstly, this document provides the programs and options used in the analysis in a stepwise fashion. Secondly, all custom Perl code is included to allow for other researchers' use. If you plan on adapting this pipeline or Perl scripts to analyze your data, I would highly suggest that you review each step and all Perl code to be sure that it suits your purposes. A good familiarity with Unix and Perl is required for this. If you have questions on specific portions of the pipeline or need help analyzing your data feel free to contact me either through this GitHub repository or via email at matthewvc1@gmail.com and I will help if I can.</p>
+<p>Best regards, Matt</p>
+<p id="blast.rmd">blast.Rmd</p>
+<h1 id="cut-off-primers-using-the-14-5-bases-and-kick-out-any-primers-that-dont-have-a-primer-in-the-first-50bp-replacing-sequence-with-primernotfound.-also-if-no-primer-is-found-it-is-labeled-as-noprimer.">Cut off primers, using the 14 5' bases, and kick out any primers that don't have a primer in the first 50bp, replacing sequence with &quot;primerNotFound&quot;. Also if no primer is found, it is labeled as &quot;noPrimer&quot;.</h1>
+<div class="row">
+
+</div>
+<div class="row">
+<button class="source perl toggle btn btn-xs btn-primary">
+<span class="glyphicon glyphicon-chevron-down"></span> perl source
+</button>
+<pre style=""><code class="source perl">#!/usr/bin/perl
+use strict;
+use warnings;
+use English;
+
+
+
+#this script takes in a list of primers in the format primerName ForwardPrimer ReversePrimer (on each line) and a number denoting how much of the 3' end to use for matching, then it takes in a fastq file and cuts off any primers 
+#the program should be run like: perl CutOffSequencFromFastqV1.pl 10 primerlist.txt sampleID-SE[1or2].fastq.gz > output.txt
+#the output is a fastq file with the sequence and quality trimmed and the sample ID (from file name) and primer added to the header
+#    ## You will want to screen out hits with "noPrimer" in the primer slot of the header afterwards.
+
+my $lengthOfPrimerToMatch = shift; # this is the number of bases on the 3' end of the primer that will be matched
+
+my %primerHash;
+my %degeneratehash = ( #hash of arrays - degenerate bases with matching bases
+               W =>["A","T"],
+               S =>["C","G"],
+               M =>["A","C"],
+               K =>["G","T"],
+               R =>["A","G"],
+               Y =>["C","T"],
+               B =>["C","G","T"],
+               D =>["A","G","T"],
+               H =>["A","C","T"],
+               V =>["A","C","G"],
+               N =>["A","C","G","T"]
+               );
+
+## Get the primers and make multiple versions for degenerate bases
+my $inputFileName = shift;
+open INPUTFILE, "$inputFileName" or die "$OS_ERROR Could not open first input\nWell, crap\n";
+while (my $input = <INPUTFILE>){
+    chomp $input;
+    addPrimerToHash($input);
+}
+
+sub addPrimerToHash {
+    my $input = shift; 
+    my ($primerName, $primerF, $primerR) = split " ", $input;
+    $primerF = trimPrimer($primerF);
+    $primerR = trimPrimer($primerR);
+    dealWithDegenerates($primerF,$primerName);
+    dealWithDegenerates($primerR,$primerName);
+}
+
+sub trimPrimer {
+    my $primer = shift;
+    if(length($primer)<$lengthOfPrimerToMatch){
+    die "You can't trim that much primer!!!\nYour trim length is longer than your primer!!!";
+    }
+    my $trimmedPrimer = substr($primer,length($primer)-$lengthOfPrimerToMatch,$lengthOfPrimerToMatch); # get the last N bases
+    return($trimmedPrimer);
+}
+
+sub dealWithDegenerates {
+    my $primer = $_[0];
+    my $primerName = $_[1];
+    if($primer =~ /[WSMKRYBDHVN]/) { #if the primer has any degenerate bases, deconvolute those and add the subsequent primers to the hash
+    addDegeneratePrimer($primer,$primerName);
+    } else {
+    $primerHash{$primer}=$primerName;
+    }
+}
+
+sub addDegeneratePrimer {
+    my $primer = $_[0];
+    my $primerName = $_[1];
+    my @primerArray = ($primer); #make an array containing the degenerate primer
+    my @tempArray = (); #make a temporary array to hold the new versions of the primers
+    my $test = 1;
+    while($test==1){
+    for(my $i=0;$i<scalar(@primerArray);$i++) { # sort through primerArray
+        if($primerArray[$i] =~ /[WSMKRYBDHVN]/) { #if 
+        push( @tempArray, getNewPrimerVersions($primerArray[$i]) );
+        } else {
+        push( @tempArray, $primerArray[$i] ); #add normal primer to tempArray
+        }
+    }
+    @primerArray = @tempArray;
+    @tempArray = ();
+    if(join("",@primerArray) =~ /[WSMKRYBDHVN]/ == 1){
+        $test=1;
+    } else {
+        $test=0;
+    }
+    }    
+    for(@primerArray) {
+    $primerHash{$_} = $primerName; #add these sequences to the primerHash
+    }    
+}
+
+#Go through the primer, and find any degenerate bases
+#Then make seperate versions of the primer for each possible sequence and add that to @primerArray
+sub getNewPrimerVersions {  
+    my $primer = shift; #primer sequence
+    my @baseArray = split("", $primer); #split the primer up into individual bases in an array
+    my @tempArray=();
+    for(my $i=0;$i<scalar(@baseArray);$i++){ #go through each base in the primer
+    my $nucleotide = $baseArray[$i];
+    if($nucleotide =~ /[WSMKRYBDHVN]/) { #if that base has a degenerate base
+        for(@{$degeneratehash{$nucleotide}}) { #go through the possible replacements 
+        my @copyArray = @baseArray; # copy this array so we can modify it
+        $copyArray[$i] = $_; #then switch out the base in the copy array with a possibility
+        push(@tempArray,join("",@copyArray)); #and add the new decoded primer sequence to the end of the @primerArray
+        }
+    }
+    }
+    return @tempArray
+}
+
+
+
+for my $primerSeq (keys %primerHash) {
+    print STDERR join("\t", $primerHash{$primerSeq}, $primerSeq) . "\n";
+}
+
+close INPUTFILE;
+
+
+
+### Now, pull in the fastq 
+
+@ARGV = map { s/(.*\.gz)\s*$/gzip -dc < $1|/;$_ } @ARGV;
+my $inputFileName2 = shift;
+my $line=1;
+my $storage;
+
+open INPUTFILE2, "$inputFileName2" or die "$OS_ERROR Could not open first input\nWell, crap\n";
+while (my $input = <INPUTFILE2>){
+    chomp $input;
+    if($line==1) {
+    $storage=$input;
+    } elsif($line<4) {
+    $storage = join("\t",$storage, $input);
+    } elsif($line==4) {
+    $storage = join("\t",$storage, $input);
+    trimSequence($storage);
+    $line=0;
+    }
+    $line++;
+}
+
+sub trimSequence {
+    my $fastq = shift;
+    my ($header, $sequence, $header2,$quality) = split "\t", $fastq;
+    my @trimmedSeqPrimerQual = searchSequenceForPrimer($sequence,$quality);
+    $inputFileName2 =~ s/.+DS/DS/;
+    $inputFileName2 =~ s/_SE[12].fastq.gz//;
+    my $newHeader = $header;
+    $newHeader = $newHeader . "|" . $trimmedSeqPrimerQual[1] . "|" . $inputFileName2;
+    my $newfastq = join("\n", $newHeader,$trimmedSeqPrimerQual[0],"+",$trimmedSeqPrimerQual[2]);
+    print $newfastq, "\n";
+}
+
+sub searchSequenceForPrimer {
+    my $sequence = shift;
+    my $qual = shift;
+    my $trimSeq;
+    my $trimQual;
+    my $primerHit="noPrimer";
+    my $flag = 0;
+    my @returnValue; 
+    for my $primerSeq (keys %primerHash) {
+    my $reverse = revComp($primerSeq);
+    my $firstFifty = substr($sequence,0,50);
+    if($firstFifty =~ /$primerSeq/) {
+        $flag = 1;
+        my $match = $sequence;
+        $match =~ /$primerSeq/g;
+        $trimSeq = substr($sequence, pos($match), length($sequence)- pos($match)  );
+        $trimQual = substr($qual, pos($match), length($qual)- pos($match)  );
+        $sequence = $trimSeq;
+        $qual = $trimQual;
+        $primerHit = $primerHash{$primerSeq};
+    } elsif($sequence =~ /$reverse/) {
+        my $match = $sequence;
+        $match =~ /$reverse/g;
+        $trimSeq = substr( $sequence, 0, pos($match)- length($primerSeq) );
+        $trimQual = substr( $qual, 0, pos($match)- length($primerSeq) );
+        $sequence = $trimSeq;
+        $qual = $trimQual;
+        $primerHit = $primerHash{$primerSeq}; 
+    } 
+    #if(length($sequence)==0) {
+    #    $sequence="noSequenceLeft";
+    #    $qual="noSequenceLeft";
+    #}
+    }
+    if($flag==1){
+    @returnValue = ($sequence,$primerHit,$qual);
+    } else {
+    @returnValue = ("primerNotFound","noPrimer",$qual);
+    }
+    return @returnValue;
+}
+
+
+sub revComp{
+    my $seq = shift;
+    $seq =~ tr/ACGTacgt/TGCAtgca/;
+    reverse($seq);
+}</code></pre>
+</div>
+<div class="row">
+<button class="source bash toggle btn btn-xs btn-primary">
+<span class="glyphicon glyphicon-chevron-down"></span> bash source
+</button>
+<pre style=""><code class="source bash">parallel --nice 10 -j 40 perl /SerreDLab/cannonm3/scripts/CutOffSequenceFromFastqV2.pl 14 data/primers {} \> ~/cannonm3/tempdir/{/.} ::: /SerreDLab/raw_reads/2013-09-27_CASE/*fastq.gz
+mv ~/cannonm3/tempdir/*.fastq primersParsed/</code></pre>
+</div>
+<h1 id="filter-out-short-reads-from-primers-that-should-be-longer">Filter out short reads from primers that should be longer:</h1>
+<p>use min length of 50bp 16SArchaea, 16Smam, 23SrDNA, AmpCB, Aves, COI_ZBJ_Art, Cop28S, Diatom18S, FishCB, FungusITS</p>
+<div class="row">
+
+</div>
+<div class="row">
+<button class="source perl toggle btn btn-xs btn-primary">
+<span class="glyphicon glyphicon-chevron-down"></span> perl source
+</button>
+<pre style=""><code class="source perl">#!usr/bin/perl
+use strict;
+use warnings;
+use English;
+
+#this script takes in a fastq file and removes any entries where the sequnce length is less than the given cutoff 
+##usage should be perl filterShortFastq.pl 50 file_SE1.fastq.gz 
+
+
+my $line =1;
+my $storage;
+
+my $minLength = shift;
+
+while (my $input = <>){
+    chomp $input;
+    if($line==1) {
+        $storage=$input;
+    } elsif($line<4) {
+        $storage = join("\n",$storage, $input);
+    } elsif($line==4) {
+        $storage = join("\n",$storage, $input);
+        printGoodLines($storage);
+        $line=0;
+    }
+    $line++;
+}
+
+
+sub printGoodLines {
+    my $fastq = shift;
+    my ($header, $sequence, $header2,$quality) = split "\n", $fastq;
+    if(length($sequence)>=$minLength) {
+        print $fastq, "\n";
+    }
+}
+
+exit;</code></pre>
+</div>
+<div class="row">
+<button class="source bash toggle btn btn-xs btn-primary">
+<span class="glyphicon glyphicon-chevron-down"></span> bash source
+</button>
+<pre style=""><code class="source bash">#!usr/bin/perl
+use strict;
+use warnings;
+use English;
+
+#this script takes in a fastq file and removes any entries where the sequnce length is less than the given cutoff 
+##usage should be perl filterShortFastq.pl 50 file_SE1.fastq.gz 
+
+
+my $line =1;
+my $storage;
+
+my $minLength = shift;
+
+while (my $input = <>){
+    chomp $input;
+    if($line==1) {
+        $storage=$input;
+    } elsif($line<4) {
+        $storage = join("\n",$storage, $input);
+    } elsif($line==4) {
+        $storage = join("\n",$storage, $input);
+        printGoodLines($storage);
+        $line=0;
+    }
+    $line++;
+}
+
+
+sub printGoodLines {
+    my $fastq = shift;
+    my ($header, $sequence, $header2,$quality) = split "\n", $fastq;
+    if(length($sequence)>=$minLength) {
+        print $fastq, "\n";
+    }
+}
+
+exit;</code></pre>
+</div>
+<h1 id="filter-out-sequences-where-the-read-pairs-have-a-difference-in-read-length-greater-than-5">Filter out sequences where the read pairs have a difference in read length greater than 5</h1>
+<div class="row">
+
+</div>
+<div class="row">
+<button class="source perl toggle btn btn-xs btn-primary">
+<span class="glyphicon glyphicon-chevron-down"></span> perl source
+</button>
+<pre style=""><code class="source perl">#!usr/bin/perl
+use strict;
+use warnings;
+use English;
+
+#this script takes in two fastq files and if the difference in read length between R1 and R2 is less than the specified value, the reads are printed out to files in a filteredFastq folder. Also unpaired reads are discarded. 
+##Assumes that the fastq files have read number in the file name in the following format: SE1 SE2
+##usage should be perl filterFastqPairsLength.pl 5 file_SE1.fastq.gz file_SE2.fastq.gz
+
+
+my %r1Hash;
+my $line =1;
+my $storage;
+my @fileArray = @ARGV;
+my $lengthWindow = shift;
+
+
+@ARGV = map { s/(.*\.gz)\s*$/gzip -dc < $1|/;$_ } @ARGV;
+
+my $inputFileName = shift;
+open INPUTFILE, "$inputFileName" or die "$OS_ERROR Could not open first input\nWell, crap\n";
+while (my $input = <INPUTFILE>){
+    chomp $input;
+    if($line==1) {
+        $storage=$input;
+    } elsif($line<4) {
+        $storage = join("\n",$storage, $input);
+    } elsif($line==4) {
+        $storage = join("\n",$storage, $input);
+        makeR1Hash($storage);
+        $line=0;
+    }
+    $line++;
+}
+
+
+sub makeR1Hash {
+    my $fastq = shift;
+    my ($header, $sequence, $header2,$quality) = split "\n", $fastq;
+    my ($headerStub) = split " ", $header;
+    $r1Hash{$headerStub} = $fastq;
+}
+
+close INPUTFILE;
+
+$line=1;
+my $inputFile2Name = shift;
+
+
+##prep the files for writing out
+my $r2fileName = $fileArray[2];
+$r2fileName =~ s/.+\///;
+$r2fileName =~ s/.gz//;
+my $r1fileName = $r2fileName;
+$r1fileName =~ s/SE2/SE1/;
+$r1fileName =~ s/R2/R1/;
+open my $r1File, '>', "filteredFastq/$r1fileName";
+open my $r2File, '>', "filteredFastq/$r2fileName";
+
+open INPUTFILE2, "$inputFile2Name" or die "$OS_ERROR Could not open first input\nWell, crap\n";
+while (my $input = <INPUTFILE2>){
+    chomp $input;
+    if($line==1) {
+        $storage=$input;
+    } elsif($line<4) {
+        $storage = join("\n",$storage, $input);
+    } elsif($line==4) {
+        $storage = join("\n",$storage, $input);
+        parseFastq($storage);
+        $line=0;
+    }
+    $line++;
+}
+
+
+sub parseFastq {
+    my $fastq = shift;
+    my ($header, $sequence, $header2,$quality) = split "\n", $fastq;
+    my ($headerStub,$primerSample) = split " ", $header;
+    $primerSample =~ s/[12]:N//;
+    if(exists($r1Hash{$headerStub}) && (length($sequence) > 15) ) {
+        my $r1fastq = $r1Hash{$headerStub};
+        my ($headerr1, $sequencer1, $header2r1,$qualityr1) = split "\n", $r1fastq;
+    my ($headerStubr1,$primerSampler1) = split " ", $headerr1;
+    $primerSampler1 =~ s/[12]:N//;
+        if( ( length($sequence) <= length($sequencer1) + $lengthWindow ) && ( length($sequence) >= length($sequencer1) - $lengthWindow ) && (length($sequencer1) > 15) ) {
+        if($primerSampler1 eq $primerSample) { #kick out any reads where both reads didn't have the same primer
+        print $r1File $r1Hash{$headerStub},"\n"; 
+        print $r2File $fastq,"\n";
+        }
+        }
+    }
+}</code></pre>
+</div>
+<div class="row">
+<button class="source bash toggle btn btn-xs btn-primary">
+<span class="glyphicon glyphicon-chevron-down"></span> bash source
+</button>
+<pre style=""><code class="source bash">for fastq in lengthFiltered/DS*SE1.fastq
+do 
+  base=${fastq%SE1.fastq} 
+  echo $base > temp 
+  perl /SerreDLab/cannonm3/scripts/filterFastqPairsLength.pl 5 ${base}SE1.fastq ${base}SE2.fastq
+done 
+gzip -f filteredFastq/*.fastq 
+gzip -f lengthFiltered/*.fastq</code></pre>
+</div>
+<h1 id="pandaseq">Pandaseq</h1>
+<div class="row">
+
+</div>
+<div class="row">
+<button class="source perl toggle btn btn-xs btn-primary">
+<span class="glyphicon glyphicon-chevron-down"></span> perl source
+</button>
+<pre style=""><code class="source perl">#!usr/bin/perl
+use strict;
+use warnings;
+use English;
+
+#this script takes in a fasta file and removes any entries where the sequnce length is less than the given cutoff
+##usage should be perl filterShortFastq.pl 50 file_SE1.fastq.gz
+
+
+my $line =1;
+my $storage;
+
+my $minLength = shift;
+
+local $/ = "\n>"; #change the input delimiter to > so the script pulls in the whole fasta entry
+
+while (my $input = <>){
+    chomp $input;
+    my ($header,@seqs) = split "\n", $input;
+    $header =~ s/>//;
+    my $sequence = join "", @seqs;
+    $sequence =~ s/\n//g;
+    if(length($sequence)>=$minLength) {
+        print ">",$header,"\n", $sequence, "\n";
+    }
+}</code></pre>
+</div>
+<div class="row">
+<button class="source bash toggle btn btn-xs btn-primary">
+<span class="glyphicon glyphicon-chevron-down"></span> bash source
+</button>
+<pre style=""><code class="source bash">rm ~/cannonm3/tempdir/*
+rm ~cannonm3/tempdir2/*
+for forward in filteredFastq/DS*_SE1.fastq.gz  
+do 
+  reverse=${forward%%_SE1.fastq.gz}_SE2.fastq.gz 
+  output=${forward%%_SE1.fastq.gz}.fastq.gz
+  output=${output##*/}
+  pandaseq -g temp.txt -f $forward -r $reverse | pigz > ~/cannonm3/tempdir/$output 
+done
+
+#and remove any sequences overlapped to the point of having short sequences
+for fastq in ~/cannonm3/tempdir/*.fastq.gz
+do 
+  base=${fastq##*/} 
+  base=${base%q.gz}
+  zgrep -A1 '16SArchaea\|16Smam\|23SrDNA\|AmpCB\|Aves12S\|COI_ZBJ_Art\|Cop28S\|Diatom18S\|FishCB\|FungusITS\|Giar18S' $fastq | grep -v -w "^--" - | perl /SerreDLab/cannonm3/scripts/filterShortFasta.pl 50 > ~cannonm3/tempdir2/${base}a
+  
+zgrep -A1 'BryoTrnL\|trnL' $fastq | grep -v -w "^--" - >> ~cannonm3/tempdir2/${base}a 
+done
+gzip -f ~cannonm3/tempdir2/*.fasta
+mv ~cannonm3/tempdir2/*.fasta.gz panda/
+rm ~/cannonm3/tempdir/*</code></pre>
+</div>
+<h2 id="get-rid-of-samples-from-outside-the-river-and-controls">Get rid of samples from outside the river and controls</h2>
+<div class="row">
+<button class="source bash toggle btn btn-xs btn-primary">
+<span class="glyphicon glyphicon-chevron-down"></span> bash source
+</button>
+<pre style=""><code class="source bash"># samples outside the river
+mv -t panda/unwanted/ panda/DS56.fasta.gz panda/DS16.fasta.gz</code></pre>
+</div>
+<h2 id="put-all-the-fasta-files-together">Put all the fasta files together</h2>
+<h1 id="add-the-sample-name-to-the-file-and-combine.">Add the sample name to the file and combine.</h1>
+<div class="row">
+<button class="source bash toggle btn btn-xs btn-primary">
+<span class="glyphicon glyphicon-chevron-down"></span> bash source
+</button>
+<pre style=""><code class="source bash">zcat panda/DS*fasta.gz | gzip > output/merged_products.fa.gz</code></pre>
+</div>
+<h1 id="run-mothur-to-get-only-unique-sequences">## Run mothur to get only unique sequences</h1>
+<div class="row">
+<button class="source bash toggle btn btn-xs btn-primary">
+<span class="glyphicon glyphicon-chevron-down"></span> bash source
+</button>
+<pre style=""><code class="source bash">gunzip output/merged_products.fa.gz
+mothur "#unique.seqs(fasta=output/merged_products.fa)" > temp  
+gawk -F"\t" '{print $2}' output/merged_products.names > temp  
+perl -pe s/","/"\t"/g temp > output/merged_products.names
+gzip -f output/merged_products.names
+gzip -f output/merged_products.unique.fa 
+gzip -f output/merged_products.fa</code></pre>
+</div>
+<h2 id="filter-out-any-sequences-seen-less-than-10-times">Filter out any sequences seen less than 10 times</h2>
+<div class="row">
+
+</div>
+<div class="row">
+<button class="source perl toggle btn btn-xs btn-primary">
+<span class="glyphicon glyphicon-chevron-down"></span> perl source
+</button>
+<pre style=""><code class="source perl">#!usr/bin/perl
+use strict;
+use warnings;
+use English;
+
+# This script takes the output from mothur and screens out any reads with less than X total occurences. 
+# syntax should be perl filterMothurByCount.pl 10 file.fa.gz file.names.gz > output.fa
+
+my $cutoff = shift;
+my %namesHash;
+
+@ARGV = map { s/(.*\.gz)\s*$/gzip -dc < $1|/;$_ } @ARGV;
+
+my $inputFileName = shift;
+open INPUTFILE, "$inputFileName" or die "$OS_ERROR Could not open first input\nWell, crap\n";
+while (my $input = <INPUTFILE>){
+    chomp $input;
+    my @names = split "\t", $input;
+    if(scalar(@names) > $cutoff) {
+        $namesHash{$names[0]}=$input;
+    }
+}
+close INPUTFILE;
+
+
+my $inputFile2Name = shift;
+
+##prep the files for writing out
+my $r2fileName = $inputFile2Name;
+$r2fileName =~ s/.+\///; #get rid of path and other crap
+$r2fileName =~ s/unique.fa.gz\|//;
+$r2fileName =~ s/unique.fasta.gz\|//;
+$r2fileName =~ s/unique.fna.gz\|//;
+my $r1fileName = $r2fileName;
+$r2fileName = $r2fileName . "unique.filtered.fa";
+$r1fileName = $r1fileName . "filtered.names";
+open my $r1File, '>', "output/$r1fileName";
+open my $r2File, '>', "output/$r2fileName";
+
+local $/ = "\n>"; #change the input delimiter to \n> so the script pulls in the whole fasta entry
+
+open INPUTFILE2, "$inputFile2Name" or die "$OS_ERROR Could not open first input\nWell, crap\n";
+while (my $input = <INPUTFILE2>){
+    chomp $input;
+    my ($header,$sequence) = split "\n", $input;
+    if(exists($namesHash{$header})) {
+        print $r2File ">".$input,"\n";
+    print $r1File $namesHash{$header}, "\n";
+    }
+}
+
+close INPUTFILE2;</code></pre>
+</div>
+<div class="row">
+<button class="source bash toggle btn btn-xs btn-primary">
+<span class="glyphicon glyphicon-chevron-down"></span> bash source
+</button>
+<pre style=""><code class="source bash">perl /SerreDLab/cannonm3/scripts/filterMothurByCount.pl 10 output/merged_products.names.gz output/merged_products.unique.fa.gz
+
+#writes out two files: output/merged_products.filtered.names  output/merged_products.unique.filtered.fa</code></pre>
+</div>
+<p id="qiimeotheranalysisv2.rmd">qiimeOtherAnalysisV2.Rmd</p>
+<h2 id="make-reference-otu-fasta-files">Make reference OTU fasta files</h2>
+<div class="row">
+<button class="source bash toggle btn btn-xs btn-primary">
+<span class="glyphicon glyphicon-chevron-down"></span> bash source
+</button>
+<pre style=""><code class="source bash">rm ~/cannonm3/tempdir/*
+# make reference OTU files for each primer
+for primer in 23SrDNA BryoTrnL COI_ZBJ_Art Cop28S Diatom18S FungusITS trnL
+do
+  zgrep -A1 $primer ../output/merged_products.unique.fa.gz | grep -v "^--" | perl -pe 's/[\@:-]//g' | perl -pe 's/M.+P//' | perl -pe 's/\|.+//'> refOTUs/${primer}Seqs.fa
+done</code></pre>
+</div>
+<p>Need to convert data into a single fasta file, with the QIIME formated headers &gt;PC.634_1 FLP3FBN01ELBSX CTGGGCCGTGTCTCAGTCCCAATGTGGCCGTTTACCCTCTCAGGCCGGCTACGCATCATCGCCTTGGTGGGC</p>
+<p>Where PC.634_1 is the sampleID and FLP... is the read name</p>
+<p>references/gg_97_otus_6oct2010.fasta is from greengenes database</p>
+<div class="row">
+
+</div>
+<div class="row">
+<button class="source perl toggle btn btn-xs btn-primary">
+<span class="glyphicon glyphicon-chevron-down"></span> perl source
+</button>
+<pre style=""><code class="source perl">#!/usr/bin/perl
+use strict;
+use warnings;
+
+my %barcodeHash;
+my $filenameStorage="placeholder";
+my $counter=0;
+
+my $barcodeFile=shift;
+open INPUTFILE, "$barcodeFile" or die "Could not open input\nWell, crap\n";
+while (my $input = <INPUTFILE>){
+    chomp $input;
+    my ($sample,$barcodeName,$barcodeSeq) = split "\t", $input;
+    $barcodeHash{$barcodeName}{barcodeSeq}=$barcodeSeq;
+    $barcodeHash{$barcodeName}{sample}=$sample;
+}
+close INPUTFILE;
+
+while(<>){
+    my $header = $_;
+    my $sequence = <>;
+    chomp $header;
+    chomp $sequence;
+    my $filename=$ARGV;
+    if($filename eq $filenameStorage){
+    $counter++;
+    }else {
+    $counter=1;
+    }
+    $filenameStorage=$filename;
+    $filename =~ s/.+\///;
+    $filename =~ s/.fasta//;
+    $header =~ s/[>\@:-]//g;
+    $header =~ s/\|.+//;
+    my $newHeader=">".$barcodeHash{$filename}{sample}."_$counter\t".$header."\torig_bc=".$barcodeHash{$filename}{barcodeSeq}."\tnew_bc=".$barcodeHash{$filename}{barcodeSeq}."\tbc_diffs=0";
+    
+    print "$newHeader\n$sequence\n";
+}</code></pre>
+</div>
+<div class="row">
+<button class="source bash toggle btn btn-xs btn-primary">
+<span class="glyphicon glyphicon-chevron-down"></span> bash source
+</button>
+<pre style=""><code class="source bash">mkdir ~/cannonm3/tempdir/convertPanda/
+for primer in 23SrDNA BryoTrnL COI_ZBJ_Art Cop28S Diatom18S FungusITS trnL
+do
+  for file in ../panda/DS*
+  do
+    base=${file##*/}
+    grep -A1 $primer $file | grep -v "^--" > ~/cannonm3/tempdir/convertPanda/$base
+  done  
+  perl scripts/convertFastaToQiimeFasta.pl /SerreDLab/cannonm3/cuyahoga/bacteriaAnalysis/barcodekey.txt ~/cannonm3/tempdir/convertPanda/DS* > inputFastas/${primer}input.fna
+  rm ~/cannonm3/tempdir/convertPanda/*
+done
+rmdir ~/cannonm3/tempdir/convertPanda/</code></pre>
+</div>
+<div class="row">
+
+</div>
+<div class="row">
+<button class="source perl toggle btn btn-xs btn-primary">
+<span class="glyphicon glyphicon-chevron-down"></span> perl source
+</button>
+<pre style=""><code class="source perl">#!/usr/bin/perl
+use strict;
+use warnings;
+
+@ARGV = map { s/(.*\.gz)\s*$/gzip -dc < $1|/;$_ } @ARGV;
+
+my %headersHash;
+
+my $sequencesFile = shift;
+open SEQFILE, "$sequencesFile" or die "Could not open sequences file\nCrap...\n";
+while(my $seqHeader = <SEQFILE>) {
+    chomp $seqHeader;
+    $seqHeader =~ s/>//;
+    my $seq = <SEQFILE>;
+    chomp $seq;
+    $headersHash{$seqHeader} = ">".$seqHeader."\n".$seq;
+}
+
+
+my $headerInputFile = shift;
+open HEADERFILE, "$headerInputFile" or die "Could not open header input file\nCrap...\n";
+
+while(my $headerInput= <HEADERFILE>) {
+    chomp $headerInput;
+    if(exists($headersHash{$headerInput})) {
+        print $headersHash{$headerInput},"\n";
+    }
+}
+close HEADERFILE;</code></pre>
+</div>
+<div class="row">
+<button class="source bash toggle btn btn-xs btn-primary">
+<span class="glyphicon glyphicon-chevron-down"></span> bash source
+</button>
+<pre style=""><code class="source bash">zcat ../output/merged_products.names.gz | awk '{ print length, $0 }' | sort -rn | cut -d" " -f2- | cut -f 1,1 | perl -pe 's/\|.+//' | perl -pe 's/[\@:-]//g' | perl -pe 's/M0105.+ANP//g' | gzip > miscData/fastqHeadersSortedByAbundance.txt
+
+for primer in 23SrDNASeqs.fa BryoTrnLSeqs.fa COI_ZBJ_ArtSeqs.fa Cop28SSeqs.fa Diatom18SSeqs.fa FungusITSSeqs.fa trnLSeqs.fa
+do
+  perl scripts/keepFastasByHeader.pl refOTUs/$primer miscData/fastqHeadersSortedByAbundance.txt.gz > refOTUs/sortedByAbundance/${primer%Seqs.fa}Sorted.fa
+  uclust --usersort --input refOTUs/sortedByAbundance/${primer%Seqs.fa}Sorted.fa --id .95 --uc refOTUs/uclust/${primer%Seqs.fa}.uc
+  grep "^C" refOTUs/uclust/${primer%Seqs.fa}.uc | cut -f 9 > temp
+  perl scripts/keepFastasByHeader.pl refOTUs/$primer temp > refOTUs/${primer%Seqs.fa}95Clustered.fa
+  rm temp
+done</code></pre>
+</div>
+<div class="row">
+<button class="source bash toggle btn btn-xs btn-primary">
+<span class="glyphicon glyphicon-chevron-down"></span> bash source
+</button>
+<pre style=""><code class="source bash">for file in refOTUs/*95Clustered.fa
+do
+  nice blastn -task blastn -db /SerreDLab/blast_db/nt -query $file -negative_gilist ../data/uncultured_samples.gi -outfmt 7 -num_threads 50 | gzip > ~/cannonm3/tempdir/${file##*/}-blast.tab.gz
+done
+
+mv ~/cannonm3/tempdir/*blast.tab.gz reblast/ </code></pre>
+</div>
+<div class="row">
+
+</div>
+<div class="row">
+<button class="source perl toggle btn btn-xs btn-primary">
+<span class="glyphicon glyphicon-chevron-down"></span> perl source
+</button>
+<pre style=""><code class="source perl">#!/usr/bin/perl
+use warnings;
+use strict;
+use English;
+
+##format should be perl parseReblast.pl fastaFile.fa file.blast.tab.gz > outputfile.txt
+
+if(@ARGV==0) {
+    print STDERR "Usage: perl parseReblast.pl blastedFastaFile.fa blastOutput.tab.gz > ouputFile\n";
+    print STDERR "Output file is query, gi, percent identity, alignment length/n";
+    die;
+}
+
+my %readLengthHash;
+my $newRead;
+my $maxBitscore;
+
+@ARGV = map { s/(.*\.gz)\s*$/gzip -dc < $1|/;$_ } @ARGV;
+
+
+my $inputFileName = shift;
+open INPUTFILE, "$inputFileName" or die "$OS_ERROR Could not open first input\nWell, crap\n";
+local $/ = "\n>"; #change the input delimiter to > so the script pulls in the whole fasta entry
+while (my $input = <INPUTFILE>){
+    chomp $input;
+    my ($readName, $sequence) = split "\n", $input;
+    $readName =~ s/>//;
+    $readLengthHash{$readName} = length($sequence);
+}
+close INPUTFILE;
+
+local $/ = "\n";
+print "#gi\tquery\tidentity\talignmentlength\n"; #header
+
+my $inputFile2Name = shift;
+open INPUTFILE2, "$inputFile2Name" or die "$OS_ERROR Could not open second input\nWell, crap\n";
+while (my $input = <INPUTFILE2>){
+    chomp $input;
+    goThroughBlast($input);
+}
+close INPUTFILE2;
+
+sub goThroughBlast {
+    if($_[0] =~ /^\#/){
+        $newRead=1;
+    } else {
+        processBlast($_[0]);
+    }
+}
+
+sub processBlast {
+    if($newRead==1) {
+        processFirstRead($_[0]);
+    } else {
+        processOtherReads($_[0]);
+    }
+}
+
+sub processFirstRead {
+    my ($queryid, $subjectid, $identity, $alignmentlength, $mismatches, $gapopens, $qstart, $qend, $sstart, $send, $evalue, $bitscore) = split "\t", $_[0];
+    $maxBitscore=$bitscore;
+    $subjectid =~ s/gi\|//;
+    $subjectid =~ s/\|.+//;
+    $identity = ((($qend - $qstart +1) - $mismatches - $gapopens)/ $readLengthHash{$queryid})*100;
+    print join("\t", $subjectid,$queryid,$identity, $alignmentlength)."\n"; 
+    $newRead=0;
+}
+
+sub processOtherReads {
+    my ($queryid, $subjectid, $identity, $alignmentlength, $mismatches, $gapopens, $qstart, $qend, $sstart, $send, $evalue, $bitscore) = split "\t", $_[0];
+    if($bitscore==$maxBitscore) {
+        $subjectid =~ s/gi\|//;
+        $subjectid =~ s/\|.+//;
+        $identity = ((($qend - $qstart +1) - $mismatches - $gapopens)/ $readLengthHash{$queryid})*100;
+        print join("\t", $subjectid,$queryid,$identity, $alignmentlength)."\n"; 
+    }
+}</code></pre>
+</div>
+<div class="row">
+<button class="source bash toggle btn btn-xs btn-primary">
+<span class="glyphicon glyphicon-chevron-down"></span> bash source
+</button>
+<pre style=""><code class="source bash">for file in refOTUs/*95Clustered.fa
+do
+  base=${file%Clustered.fa}
+  perl scripts/parseReblast.pl $file reblast/${file##*/}-blast.tab.gz > reblast/${base##*/}parsed.txt
+  cut -f 1 reblast/${base##*/}parsed.txt | sort | uniq | grep -v gi > reblast/${base##*/}gis.txt
+done</code></pre>
+</div>
+<div class="row">
+<button class="source R toggle btn btn-xs btn-primary">
+<span class="glyphicon glyphicon-chevron-down"></span> R source
+</button>
+<pre style=""><code class="source r">files <- list.files(path = "reblast/", pattern = "*gis.txt")
+
+for(file in files){
+  data <- read.table(paste("reblast/", file, sep = ""))
+  taxa <- get_taxonomy(data$V1) 
+  df <- data.frame(matrix(nrow = nrow(taxa), ncol = 0))
+  df$gi <- taxa$gi
+  df$species <- taxa$species
+  df$kingdom <- taxa$kingdom
+  df$phylum <- taxa$phylum
+  df$class <- taxa$class
+  df$order <- taxa$order
+  df$family <- taxa$family
+  baseName <- gsub("gis.txt", "", file)
+  write.table(df, file = paste("reblast/", baseName, "TaxaRaw.txt", sep = ""), quote = F, sep = "\t", col.names = T, row.names = F)
+}</code></pre>
+</div>
+<h2 id="screen-taxa-files-to-toss-out-off-target-sequences">screen taxa files to toss out off-target sequences</h2>
+<div class="row">
+<button class="source bash toggle btn btn-xs btn-primary">
+<span class="glyphicon glyphicon-chevron-down"></span> bash source
+</button>
+<pre style=""><code class="source bash">gawk -F"\t" 'BEGIN {OFS = "\t"} $4=="Bacillariophyta"{print $_}' reblast/23SrDNA95TaxaRaw.txt > reblast/23SrDNA95SubsetDiatomTaxa.txt
+
+######################
+####### Should not have included Streptophyta here --- Filter out during the PCAs
+######################
+
+gawk -F"\t" 'BEGIN {OFS = "\t"} $4=="Streptophyta" || $4=="Eustigmatophyceae" || $4=="Chlorophyta" || $4=="Phaeophyceae" || $5=="Cryptophyta" || $5=="Raphidophyceae" || $5=="Florideophyceae" || $5=="Compsopogonophyceae" || $6=="Phaeocystales" || $6=="Isochrysidales" {print $_}' reblast/23SrDNA95TaxaRaw.txt > reblast/23SrDNA95SubsetAlgaeTaxa.txt
+
+gawk -F"\t" 'BEGIN {OFS = "\t"} $5=="Bryopsida"{print $_}' reblast/BryoTrnL95TaxaRaw.txt > reblast/BryoTrnL95SubsetTaxa.txt
+
+gawk -F"\t" 'BEGIN {OFS = "\t"} $5=="Insecta"{print $_}' reblast/COI_ZBJ_Art95TaxaRaw.txt > reblast/COI_ZBJ_Art95SubsetTaxa.txt
+
+gawk -F"\t" 'BEGIN {OFS = "\t"} $5=="Maxillopoda"{print $_}' reblast/Cop28S95TaxaRaw.txt > reblast/Cop28S95SubsetTaxa.txt
+
+gawk -F"\t" 'BEGIN {OFS = "\t"} $4=="Bacillariophyta"{print $_}' reblast/Diatom18S95TaxaRaw.txt > reblast/Diatom18S95SubsetDiatomTaxa.txt
+
+gawk -F"\t" 'BEGIN {OFS = "\t"} $4=="Xanthophyceae" || $4=="Chlorophyta"|| $4=="Phaeophyceae" || $4=="Eustigmatophyceae" || $5=="Chrysophyceae" || $5=="Raphidophyceae" || $5=="Synurophyceae" || $5=="Synchromophyceae" ||$5=="Dictyochophyceae" {print $_}' reblast/Diatom18S95TaxaRaw.txt > reblast/Diatom18S95SubsetAlgaeTaxa.txt
+
+gawk -F"\t" 'BEGIN {OFS = "\t"} $3=="Fungi"{print $_}' reblast/FungusITS95TaxaRaw.txt > reblast/FungusITS95SubsetTaxa.txt
+
+gawk -F"\t" 'BEGIN {OFS = "\t"} $4=="Streptophyta" && $5!="Bryopsida"{print $_}' reblast/trnL95TaxaRaw.txt > reblast/trnL95SubsetTaxa.txt</code></pre>
+</div>
+<div class="row">
+
+</div>
+<div class="row">
+<button class="source perl toggle btn btn-xs btn-primary">
+<span class="glyphicon glyphicon-chevron-down"></span> perl source
+</button>
+<pre style=""><code class="source perl">#!/user/bin/perl
+use strict;
+use warnings;
+use English;
+
+###this script takes files and combines them by the first X tab separated columns.
+###the first file should be the smaller of the two, or the file with single combination of the first X columns
+###Assumes that the combination of the first X columns for each row are unique for the first file.
+###usage is: perl combineFilesByFirstXColumns.pl 3 file.txt file2.txt > output.txt
+
+my %methHash;
+
+my %rows;
+my $fileNumber = 1;
+my @fileArray;
+my $ncol=shift;
+my $totalNcol;
+
+@ARGV = map { s/(.*\.gz)\s*$/gzip -dc < $1|/;$_ } @ARGV;
+my @files = @ARGV;
+
+my $InputFile = shift;
+open INPUT, "$InputFile" or die "$OS_ERROR Could not open $InputFile\nWell, crap\n";
+while (my $input=<INPUT>) {
+    chomp $input;
+    my @columns = split("\t", $input);
+    $totalNcol=scalar(@columns);
+    my $reference = join("\t",@columns[0..($ncol-1)]);
+    $rows{$reference}=join("\t",@columns[$ncol..(scalar(@columns)-1)]);
+}
+close INPUT;
+
+$InputFile = shift;
+open INPUT, "$InputFile" or die "$OS_ERROR Could not open $InputFile\nWell, crap\n";
+while (my $input=<INPUT>) {
+    chomp $input;
+    my @columns = split("\t",$input);
+    $totalNcol=scalar(@columns);
+    my $reference = join("\t",@columns[0..($ncol-1)]);
+    if(exists($rows{$reference})){
+    print join("\t",$input,$rows{$reference})."\n";
+    } #else {
+#   print "\tNA" x ($totalNcol-$ncol);
+#    }
+}</code></pre>
+</div>
+<div class="row">
+<button class="source bash toggle btn btn-xs btn-primary">
+<span class="glyphicon glyphicon-chevron-down"></span> bash source
+</button>
+<pre style=""><code class="source bash">for file in reblast/*Subset*Taxa.txt
+do
+  base=${file%95Subset*}
+  base=${base##*/}
+  longerBase=${file%Taxa.txt}
+  perl /SerreDLab/cannonm3/scripts/combineFilesByFirstXColumnsOrdered.pl 1 $file reblast/${base}95parsed.txt | cut -f 2 | sort | uniq > ${file%Taxa.txt}Headers.txt
+  perl scripts/keepFastasByHeader.pl refOTUs/${base}Seqs.fa ${file%Taxa.txt}Headers.txt > refOTUs/95OTUs/${longerBase##*/}OTUs.fa
+done</code></pre>
+</div>
+<div class="row">
+<button class="source bash toggle btn btn-xs btn-primary">
+<span class="glyphicon glyphicon-chevron-down"></span> bash source
+</button>
+<pre style=""><code class="source bash">for file in refOTUs/95OTUs/*95Subset*OTUs.fa
+do
+  base=${file##*/}
+  clustalo --threads 40 -i $file | FastTree -fastest -nt > aligned/${base%OTUs.fa}.tre
+done</code></pre>
+</div>
+<div class="row">
+<button class="source bash toggle btn btn-xs btn-primary">
+<span class="glyphicon glyphicon-chevron-down"></span> bash source
+</button>
+<pre style=""><code class="source bash">rm ~/cannonm3/tempdir/*
+for file in refOTUs/95OTUs/*.fa
+do
+  nice blastn -task blastn -db /SerreDLab/blast_db/nt -query $file -negative_gilist ../data/uncultured_samples.gi -outfmt 7 -num_threads 50 | gzip > ~/cannonm3/tempdir/${file##*/}-blast.tab.gz
+done
+
+mv ~/cannonm3/tempdir/*blast.tab.gz blastCheck/ </code></pre>
+</div>
+<div class="row">
+
+</div>
+<div class="row">
+<button class="source perl toggle btn btn-xs btn-primary">
+<span class="glyphicon glyphicon-chevron-down"></span> perl source
+</button>
+<pre style=""><code class="source perl">#!/usr/bin/perl
+use warnings;
+use strict;
+use English;
+
+##format should be perl parseReblast.pl fastaFile.fa file.blast.tab.gz > outputfile.txt
+
+if(@ARGV==0) {
+    print STDERR "Usage: perl parseReblast.pl blastedFastaFile.fa blastOutput.tab.gz > ouputFile\n";
+    print STDERR "Output file is query, gi, percent identity, alignment length/n";
+    die;
+}
+
+my %readLengthHash;
+my $newRead;
+my $maxBitscore;
+
+@ARGV = map { s/(.*\.gz)\s*$/gzip -dc < $1|/;$_ } @ARGV;
+
+
+my $inputFileName = shift;
+open INPUTFILE, "$inputFileName" or die "$OS_ERROR Could not open first input\nWell, crap\n";
+local $/ = "\n>"; #change the input delimiter to > so the script pulls in the whole fasta entry
+while (my $input = <INPUTFILE>){
+    chomp $input;
+    my ($readName, $sequence) = split "\n", $input;
+    $readName =~ s/>//;
+    $readLengthHash{$readName} = length($sequence);
+}
+close INPUTFILE;
+
+local $/ = "\n";
+print "#gi\tquery\tidentity\talignmentlength\n"; #header
+
+my $inputFile2Name = shift;
+open INPUTFILE2, "$inputFile2Name" or die "$OS_ERROR Could not open second input\nWell, crap\n";
+while (my $input = <INPUTFILE2>){
+    chomp $input;
+    goThroughBlast($input);
+}
+close INPUTFILE2;
+
+sub goThroughBlast {
+    if($_[0] =~ /^\#/){
+        $newRead=1;
+    } else {
+        processBlast($_[0]);
+    }
+}
+
+sub processBlast {
+    if($newRead==1) {
+        processFirstRead($_[0]);
+    } else {
+        processOtherReads($_[0]);
+    }
+}
+
+sub processFirstRead {
+    my ($queryid, $subjectid, $identity, $alignmentlength, $mismatches, $gapopens, $qstart, $qend, $sstart, $send, $evalue, $bitscore) = split "\t", $_[0];
+    $maxBitscore=$bitscore;
+    $subjectid =~ s/gi\|//;
+    $subjectid =~ s/\|.+//;
+    $identity = ((($qend - $qstart +1) - $mismatches - $gapopens)/ $readLengthHash{$queryid})*100;
+    print join("\t", $subjectid,$queryid,$identity, $alignmentlength)."\n"; 
+    $newRead=0;
+}
+
+sub processOtherReads {
+    my ($queryid, $subjectid, $identity, $alignmentlength, $mismatches, $gapopens, $qstart, $qend, $sstart, $send, $evalue, $bitscore) = split "\t", $_[0];
+    if($bitscore==$maxBitscore) {
+        $subjectid =~ s/gi\|//;
+        $subjectid =~ s/\|.+//;
+        $identity = ((($qend - $qstart +1) - $mismatches - $gapopens)/ $readLengthHash{$queryid})*100;
+        print join("\t", $subjectid,$queryid,$identity, $alignmentlength)."\n"; 
+    }
+}</code></pre>
+</div>
+<div class="row">
+<button class="source bash toggle btn btn-xs btn-primary">
+<span class="glyphicon glyphicon-chevron-down"></span> bash source
+</button>
+<pre style=""><code class="source bash">for file in refOTUs/95OTUs/*.fa
+do
+  base=${file%OTUs.fa}
+  perl scripts/parseReblast.pl $file blastCheck/${file##*/}-blast.tab.gz > blastCheck/${base##*/}parsed.txt
+  cut -f 1 blastCheck/${base##*/}parsed.txt | sort | uniq | grep -v gi > blastCheck/${base##*/}gis.txt
+done</code></pre>
+</div>
+<div class="row">
+<button class="source R toggle btn btn-xs btn-primary">
+<span class="glyphicon glyphicon-chevron-down"></span> R source
+</button>
+<pre style=""><code class="source r">files<-list.files(path="blastCheck/", pattern = "*gis.txt")
+
+for(file in files){
+  data <- read.table(paste("blastCheck/", file, sep = ""))
+  taxa <- get_taxonomy(data$V1) 
+  df <- data.frame(matrix(nrow = nrow(taxa), ncol = 0))
+  df$gi <- taxa$gi
+  df$species <- taxa$species
+  df$kingdom <- taxa$kingdom
+  df$phylum <- taxa$phylum
+  df$class <- taxa$class
+  df$order <- taxa$order
+  df$family <- taxa$family
+  baseName <- gsub("gis.txt", "", file)
+  write.table(df, file = paste("blastCheck/", baseName, "TaxaRaw.txt", sep = ""), quote = F, sep = "\t", col.names = T, row.names = F)
+}</code></pre>
+</div>
+<p id="from-qiimeotheranalysisv3.rmd">from qiimeOtherAnalysisV3.Rmd</p>
+<div class="row">
+<button class="source R toggle btn btn-xs btn-primary">
+<span class="glyphicon glyphicon-chevron-down"></span> R source
+</button>
+<pre style=""><code class="source r">#setwd('/home/matthewcannon/SerreDLab-3/cannonm3/cuyahoga/SecondPaper/')
+library(ggplot2)
+#library(ggmap)
+library(plyr)
+library(reshape2)
+#library(primerTree)
+theme_set(theme_bw())
+std <- function(x) sd(na.omit(x)) / sqrt(length(na.omit(x)))</code></pre>
+</div>
+<h1 id="get-data-from-previous-analysis">Get data from previous analysis</h1>
+<div class="row">
+<button class="source bash toggle btn btn-xs btn-primary">
+<span class="glyphicon glyphicon-chevron-down"></span> bash source
+</button>
+<pre style=""><code class="source bash">cp ../qiimeOther/reblast/*blast.tab.gz reanalysis10_12_16/reblast/
+cp ../qiimeOther/refOTUs/*95Clustered.fa reanalysis10_12_16/refOTUs/
+cp ../qiimeOther/reblast/*TaxaRaw.txt reanalysis10_12_16/reblast/
+
+cp ../qiimeOther/refOTUs/*Seqs.fa reanalysis10_12_16/refOTUs/
+cp ../qiimeOther/parametersFile.txt reanalysis10_12_16/
+cp ../qiimeOther/inputFastas/*input.fna reanalysis10_12_16/inputFastas/
+# cp ../qiimeOther/reblast/*95parsed.txt reanalysis10_12_16/reblast/
+cp ../qiimeOther/mappingFile.txt reanalysis10_12_16/</code></pre>
+</div>
+<h2 id="parse-out-the-blast-results">Parse out the blast results</h2>
+<p>Changed the perl script to include a cutoff of 80% identity</p>
+<div class="row">
+
+</div>
+<div class="row">
+<button class="source perl toggle btn btn-xs btn-primary">
+<span class="glyphicon glyphicon-chevron-down"></span> perl source
+</button>
+<pre style=""><code class="source perl">#!/usr/bin/perl
+use warnings;
+use strict;
+use English;
+
+##format should be perl parseReblast.pl fastaFile.fa file.blast.tab.gz > outputfile.txt
+
+if(@ARGV == 0) {
+    print STDERR "Usage: perl parseReblast.pl blastedFastaFile.fa blastOutput.tab.gz > ouputFile\n";
+    print STDERR "Output file is query, gi, percent identity, alignment length/n";
+    die;
+}
+
+my %readLengthHash;
+my $newRead;
+my $maxBitscore;
+my $minIdentity = 80; # Arbitrary cutoff
+
+@ARGV = map { s/(.*\.gz)\s*$/gzip -dc < $1|/;$_ } @ARGV;
+
+
+my $inputFileName = shift;
+open INPUTFILE, "$inputFileName" or die "$OS_ERROR Could not open first input\nWell, crap\n";
+local $/ = "\n>"; #change the input delimiter to > so the script pulls in the whole fasta entry
+while (my $input = <INPUTFILE>){
+    chomp $input;
+    my ($readName, $sequence) = split "\n", $input;
+    $readName =~ s/>//;
+    $readLengthHash{$readName} = length($sequence);
+}
+close INPUTFILE;
+
+local $/ = "\n";
+print "#gi\tquery\tidentity\talignmentlength\n"; #header
+
+my $inputFile2Name = shift;
+open INPUTFILE2, "$inputFile2Name" or die "$OS_ERROR Could not open second input\nWell, crap\n";
+while (my $input = <INPUTFILE2>){
+    chomp $input;
+    goThroughBlast($input);
+}
+close INPUTFILE2;
+
+sub goThroughBlast {
+    if($_[0] =~ /^\#/){
+        $newRead = 1;
+    } else {
+        processBlast($_[0]);
+    }
+}
+
+sub processBlast {
+    if($newRead == 1) {
+        processFirstRead($_[0]);
+    } else {
+        processOtherReads($_[0]);
+    }
+}
+
+sub processFirstRead {
+    my ($queryid, $subjectid, $identity, $alignmentlength, $mismatches, $gapopens, $qstart, $qend, $sstart, $send, $evalue, $bitscore) = split "\t", $_[0];
+    $maxBitscore = $bitscore;
+    $subjectid =~ s/gi\|//;
+    $subjectid =~ s/\|.+//;
+    $identity = ((($qend - $qstart + 1) - $mismatches - $gapopens) / $readLengthHash{$queryid}) * 100;
+    if($identity >= $minIdentity) {
+    print join("\t", $subjectid, $queryid, $identity, $alignmentlength) . "\n"; 
+    $newRead=0;
+    }
+}
+
+sub processOtherReads {
+    my ($queryid, $subjectid, $identity, $alignmentlength, $mismatches, $gapopens, $qstart, $qend, $sstart, $send, $evalue, $bitscore) = split "\t", $_[0];
+    if($bitscore == $maxBitscore) {
+        $subjectid =~ s/gi\|//;
+        $subjectid =~ s/\|.+//;
+        $identity = ((($qend - $qstart + 1) - $mismatches - $gapopens)/ $readLengthHash{$queryid}) * 100;
+    if($identity >= $minIdentity) {
+        print join("\t", $subjectid, $queryid, $identity, $alignmentlength)."\n"; 
+    }
+    }
+}</code></pre>
+</div>
+<div class="row">
+<button class="source bash toggle btn btn-xs btn-primary">
+<span class="glyphicon glyphicon-chevron-down"></span> bash source
+</button>
+<pre style=""><code class="source bash">for file in reanalysis10_12_16/refOTUs/*95Clustered.fa
+do
+  base=${file%Clustered.fa}
+  perl scripts/parseReblast.pl $file reanalysis10_12_16/reblast/${file##*/}-blast.tab.gz > reanalysis10_12_16/reblast/${base##*/}parsed.txt
+  cut -f 1 reanalysis10_12_16/reblast/${base##*/}parsed.txt | sort | uniq | grep -v gi > reanalysis10_12_16/reblast/${base##*/}gis.txt
+done</code></pre>
+</div>
+<h2 id="get-taxa">Get Taxa</h2>
+Not run, using previous data due to issues with primerTree installation on azathoth
+<div class="row">
+<button class="source R toggle btn btn-xs btn-primary">
+<span class="glyphicon glyphicon-chevron-down"></span> R source
+</button>
+<pre style=""><code class="source r">files <- list.files(path = "reanalysis10_12_16/reblast/", pattern = "*gis.txt")
+
+for(file in files){
+  data <- read.table(paste("reblast/", file, sep = ""))
+  taxa <- get_taxonomy(data$V1) 
+  df <- data.frame(matrix(nrow = nrow(taxa), ncol = 0))
+  df$gi <- taxa$gi
+  df$species <- taxa$species
+  df$kingdom <- taxa$kingdom
+  df$phylum <- taxa$phylum
+  df$class <- taxa$class
+  df$order <- taxa$order
+  df$family <- taxa$family
+  baseName <- gsub("gis.txt", "", file)
+  write.table(df, 
+              file = paste("reanalysis10_12_16/reblast/", baseName, "TaxaRaw.txt", sep = ""), 
+              quote = F, 
+              sep = "\t", 
+              col.names = T, 
+              row.names = F)
+}</code></pre>
+</div>
+<h2 id="screen-taxa-files-to-toss-out-off-target-sequences-1">screen taxa files to toss out off-target sequences</h2>
+<div class="row">
+<button class="source bash toggle btn btn-xs btn-primary">
+<span class="glyphicon glyphicon-chevron-down"></span> bash source
+</button>
+<pre style=""><code class="source bash"># 23S primers
+gawk -F"\t" 'BEGIN {OFS = "\t"} $4=="Bacillariophyta" || $4=="Eustigmatophyceae" || $4=="Chlorophyta" || $4=="Phaeophyceae" || $5=="Cryptophyta" || $5=="Raphidophyceae" || $5=="Florideophyceae" || $5=="Compsopogonophyceae" || $6=="Phaeocystales" || $6=="Isochrysidales" {print $_}' reanalysis10_12_16/reblast/23SrDNA95TaxaRaw.txt > reanalysis10_12_16/reblast/23SrDNA95SubsetTaxa.txt
+
+# Diatom18S primers
+gawk -F"\t" 'BEGIN {OFS = "\t"} $4=="Bacillariophyta" || $4=="Xanthophyceae" || $4=="Chlorophyta"|| $4=="Phaeophyceae" || $4=="Eustigmatophyceae" || $5=="Chrysophyceae" || $5=="Raphidophyceae" || $5=="Synurophyceae" || $5=="Synchromophyceae" ||$5=="Dictyochophyceae" {print $_}' reanalysis10_12_16/reblast/Diatom18S95TaxaRaw.txt > reanalysis10_12_16/reblast/Diatom18S95SubsetTaxa.txt
+
+# Fungi primers
+gawk -F"\t" 'BEGIN {OFS = "\t"} $3=="Fungi"{print $_}' reanalysis10_12_16/reblast/FungusITS95TaxaRaw.txt > reanalysis10_12_16/reblast/FungusITS95SubsetTaxa.txt</code></pre>
+</div>
+<h1 id="make-up-reference-otu-fasta-files">Make up reference OTU fasta files</h1>
+<div class="row">
+<button class="source bash toggle btn btn-xs btn-primary">
+<span class="glyphicon glyphicon-chevron-down"></span> bash source
+</button>
+<pre style=""><code class="source bash">for file in reanalysis10_12_16/reblast/*Subset*Taxa.txt
+do
+  base=${file%95Subset*}
+  base=${base##*/}
+  longerBase=${file%Taxa.txt}
+  perl ~/SerreDLab-2/cannonm3/scripts/combineFilesByFirstXColumnsOrdered.pl 1 $file reanalysis10_12_16/reblast/${base}95parsed.txt | cut -f 2 | sort | uniq > ${file%Taxa.txt}Headers.txt
+  perl ../qiimeOther/scripts/keepFastasByHeader.pl reanalysis10_12_16/refOTUs/${base}Seqs.fa ${file%Taxa.txt}Headers.txt > reanalysis10_12_16/refOTUs/95OTUs/${longerBase##*/}OTUs.fa
+done</code></pre>
+</div>
+<h1 id="make-trees-for-qiime-analysis">Make trees for QIIME analysis</h1>
+<div class="row">
+<button class="source bash toggle btn btn-xs btn-primary">
+<span class="glyphicon glyphicon-chevron-down"></span> bash source
+</button>
+<pre style=""><code class="source bash">for file in reanalysis10_12_16/refOTUs/95OTUs/*95Subset*OTUs.fa
+do 
+  base=${file##*/}
+  /usr/local/packages/clustal-omega-1.1.1/bin/clustalo --threads 10 -i $file | /usr/local/packages/Qiime-1.8.0/fasttree-2.1.3-release/FastTree -fastest -nt > reanalysis10_12_16/aligned/${base%OTUs.fa}.tre
+done</code></pre>
+</div>
+<h1 id="rerun-qiime-analysis-on-other-datasets">Rerun QIIME analysis on other datasets</h1>
+<h2 id="pick-otus">pick OTUs</h2>
+<div class="row">
+<button class="source bash toggle btn btn-xs btn-primary">
+<span class="glyphicon glyphicon-chevron-down"></span> bash source
+</button>
+<pre style=""><code class="source bash">source /usr/local/packages/Qiime-1.8.0/activate.sh
+
+path=/home/matthewcannon/SerreDLab-3/cannonm3/cuyahoga/SecondPaper
+ 
+for file in reanalysis10_12_16/refOTUs/95OTUs/*
+do  
+  base=${file##*/}
+  base=${base%95*} 
+  pick_closed_reference_otus.py -a -O 20 -v -o ${path}/reanalysis10_12_16/otus/${file##*/}/ -i ${path}/reanalysis10_12_16/inputFastas/${base}input.fna -r ${path}/${file} -p ${path}/reanalysis10_12_16/parametersFile.txt
+done
+
+for directory in reanalysis10_12_16/otus/*
+do
+  biom summarize-table -i $directory/otu_table.biom -o $directory/summaryOtu_table.txt 
+  biom convert -i $directory/otu_table.biom -o $directory/otu_table.txt --biom-to-classic-table 
+done</code></pre>
+</div>
+<h2 id="calc-alpha-div-for-other-datasets">Calc alpha div for other datasets</h2>
+<div class="row">
+<button class="source bash toggle btn btn-xs btn-primary">
+<span class="glyphicon glyphicon-chevron-down"></span> bash source
+</button>
+<pre style=""><code class="source bash">#23SrDNA95SubsetOTUs.fa     600
+#Diatom18S95SubsetOTUs.fa  1400
+#FungusITS95SubsetOTUs.fa        350
+
+path=/home/matthewcannon/SerreDLab-3/cannonm3/cuyahoga/SecondPaper/reanalysis10_12_16
+source /usr/local/packages/Qiime-1.8.0/activate.sh
+
+alpha_rarefaction.py -a -O 20 -e 600 -i ${path}/otus/23SrDNA95SubsetOTUs.fa/otu_table.biom -o ${path}/diversity/23SrDNA95SubsetOTUs.fa/arare/ -m ${path}/mappingFile.txt -t ${path}/aligned/23SrDNA95Subset.tre 
+
+alpha_rarefaction.py -a -O 20 -e 1400 -i ${path}/otus/Diatom18S95SubsetOTUs.fa/otu_table.biom -o ${path}/diversity/Diatom18S95SubsetOTUs.fa/arare/ -m ${path}/mappingFile.txt -t ${path}/aligned/Diatom18S95Subset.tre 
+
+alpha_rarefaction.py -a -O 20 -e 350 -i ${path}/otus/FungusITS95SubsetOTUs.fa/otu_table.biom -o ${path}/diversity/FungusITS95SubsetOTUs.fa/arare/ -m ${path}/mappingFile.txt -t ${path}/aligned/FungusITS95Subset.tre </code></pre>
+</div>
+<h2 id="calc-beta-diversity-for-other-datasets">Calc beta diversity for other datasets</h2>
+<div class="row">
+<button class="source bash toggle btn btn-xs btn-primary">
+<span class="glyphicon glyphicon-chevron-down"></span> bash source
+</button>
+<pre style=""><code class="source bash">path=/home/matthewcannon/SerreDLab-3/cannonm3/cuyahoga/SecondPaper/reanalysis10_12_16
+source /usr/local/packages/Qiime-1.8.0/activate.sh
+
+beta_diversity_through_plots.py --suppress_emperor_plots -e 600 -a -O 20 -i ${path}/otus/23SrDNA95SubsetOTUs.fa/otu_table.biom -o ${path}/diversity/23SrDNA95SubsetOTUs.fa/bdiv/ -m ${path}/mappingFile.txt -t ${path}/aligned/23SrDNA95Subset.tre 
+
+beta_diversity_through_plots.py --suppress_emperor_plots -e 1400 -a -O 20 -i ${path}/otus/Diatom18S95SubsetOTUs.fa/otu_table.biom -o ${path}/diversity/Diatom18S95SubsetOTUs.fa/bdiv/ -m ${path}/mappingFile.txt  -t ${path}/aligned/Diatom18S95Subset.tre 
+
+beta_diversity_through_plots.py --suppress_emperor_plots -e 350 -a -O 20 -i ${path}/otus/FungusITS95SubsetOTUs.fa/otu_table.biom -o ${path}/diversity/FungusITS95SubsetOTUs.fa/bdiv/ -m ${path}/mappingFile.txt -t ${path}/aligned/FungusITS95Subset.tre </code></pre>
+</div>
+<h2 id="convert-biom-tables-to-tab-delimited">Convert biom tables to tab delimited</h2>
+<div class="row">
+<button class="source bash toggle btn btn-xs btn-primary">
+<span class="glyphicon glyphicon-chevron-down"></span> bash source
+</button>
+<pre style=""><code class="source bash">source /usr/local/packages/Qiime-1.8.0/activate.sh
+
+for file in reanalysis10_12_16/diversity/*/bdiv/otu_table_even*.biom
+do
+  biom convert -i $file -o ${file%.biom}.txt --biom-to-classic-table
+done</code></pre>
+</div>
+<h1 id="rerunning-qiime-on-bacteria-and-archaea">Rerunning QIIME on bacteria and archaea</h1>
+<h2 id="copy-over-old-data">Copy over old data</h2>
+<div class="row">
+<button class="source bash toggle btn btn-xs btn-primary">
+<span class="glyphicon glyphicon-chevron-down"></span> bash source
+</button>
+<pre style=""><code class="source bash">cp ../bacteriaAnalysis/qiime/input.fna reanalysis10_12_16/BA/inputFastas/bacteriaInput.fna
+cp ../bacteriaAnalysis/qiime/mappingFile.txt reanalysis10_12_16/BA/bacteriaMappingFile.txt
+cp ../bacteriaAnalysis/qiimeArchaea/16SArchaeaInput.fna reanalysis10_12_16/BA/inputFastas/</code></pre>
+</div>
+<h2 id="pick-otus-1">Pick OTUs</h2>
+<div class="row">
+<button class="source bash toggle btn btn-xs btn-primary">
+<span class="glyphicon glyphicon-chevron-down"></span> bash source
+</button>
+<pre style=""><code class="source bash">path=/home/matthewcannon/SerreDLab-3/cannonm3/cuyahoga/SecondPaper/reanalysis10_12_16
+source /usr/local/packages/Qiime-1.8.0/activate.sh
+
+## Archaea
+pick_closed_reference_otus.py -a -O 20 -o ${path}/BA/otus/arch -i ${path}/BA/inputFastas/16SArchaeaInput.fna  -r ~/SerreDLab-3/databases/gg_13_8_otus/rep_set/97_otus.fasta
+
+## Bacteria
+pick_closed_reference_otus.py -a -O 20 -o ${path}/BA/otus/bact -i ${path}/BA/inputFastas/bacteriaInput.fna -r ~/SerreDLab-3/databases/gg_13_8_otus/rep_set/97_otus.fasta</code></pre>
+</div>
+<div class="row">
+<button class="source bash toggle btn btn-xs btn-primary">
+<span class="glyphicon glyphicon-chevron-down"></span> bash source
+</button>
+<pre style=""><code class="source bash">biom summarize-table -i reanalysis10_12_16/BA/otus/arch/otu_table.biom -o reanalysis10_12_16/BA/otus/arch/summaryOtu_table.txt
+biom summarize-table -i reanalysis10_12_16/BA/otus/bact/otu_table.biom -o reanalysis10_12_16/BA/otus/bact/summaryOtu_table.txt</code></pre>
+</div>
+<h2 id="run-diversity-analysis-on-datasets">Run diversity analysis on datasets</h2>
+<div class="row">
+<button class="source bash toggle btn btn-xs btn-primary">
+<span class="glyphicon glyphicon-chevron-down"></span> bash source
+</button>
+<pre style=""><code class="source bash">path=/home/matthewcannon/SerreDLab-3/cannonm3/cuyahoga/SecondPaper/reanalysis10_12_16
+source /usr/local/packages/Qiime-1.8.0/activate.sh
+
+## Archaea
+beta_diversity_through_plots.py --suppress_emperor_plots -a -O 40 -i ${path}/BA/otus/arch/otu_table.biom -o ${path}/BA/cda/arch/ -m ../bacteriaAnalysis/qiimeArchaea/mappingFile.txt -e 2000 -t ~/SerreDLab-3/databases/gg_13_8_otus/trees/97_otus.tree -p ../bacteriaAnalysis/qiimeArchaea/parameterFile.txt
+
+## Bacteria
+beta_diversity_through_plots.py --suppress_emperor_plots -a -O 40 -i ${path}/BA/otus/bact/otu_table.biom -o ${path}/BA/cda/bact/ -m ../bacteriaAnalysis/qiime/mappingFile.txt -e 20000 -t ~/SerreDLab-3/databases/gg_13_8_otus/trees/97_otus.tree -p ../bacteriaAnalysis/qiime/parameterFile.txt</code></pre>
+</div>
+<h2 id="convert-final-otu-tables-to-tab-delimited-form">Convert final otu tables to tab delimited form</h2>
+<div class="row">
+<button class="source bash toggle btn btn-xs btn-primary">
+<span class="glyphicon glyphicon-chevron-down"></span> bash source
+</button>
+<pre style=""><code class="source bash">path=/home/matthewcannon/SerreDLab-3/cannonm3/cuyahoga/SecondPaper/reanalysis10_12_16
+source /usr/local/packages/Qiime-1.8.0/activate.sh  
+
+biom convert -i ${path}/BA/cda/arch/otu_table_even2000.biom -o ${path}/BA/cda/arch/arch_otu_table_even.txt --biom-to-classic-table
+biom convert -i ${path}/BA/cda/bact/otu_table_even20000.biom -o ${path}/BA/cda/bact/bact_otu_table_even.txt --biom-to-classic-table</code></pre>
+</div>
+<h1 id="subsample-all-datasets-to-350-reads-per-sample-for-direct-comparison">Subsample all datasets to 350 reads per sample for direct comparison</h1>
+<h2 id="subsample">Subsample</h2>
+<div class="row">
+<button class="source bash toggle btn btn-xs btn-primary">
+<span class="glyphicon glyphicon-chevron-down"></span> bash source
+</button>
+<pre style=""><code class="source bash">path=/home/matthewcannon/SerreDLab-3/cannonm3/cuyahoga/SecondPaper
+source /usr/local/packages/Qiime-1.8.0/activate.sh
+# 350 reads per sample
+for dir in reanalysis10_12_16/otus/* reanalysis10_12_16/BA/otus/*
+do 
+  base=${dir##*/}
+  base=${base%95SubsetOTUs.fa}
+  single_rarefaction.py -i ${path}/${dir}/otu_table.biom -o ${path}/reanalysis10_12_16/evenSubsampleOtuTables/${base}.biom -d 350
+done</code></pre>
+</div>
+<h2 id="convert-biom-tables-to-tab-delimited-1">Convert biom tables to tab delimited</h2>
+<div class="row">
+<button class="source bash toggle btn btn-xs btn-primary">
+<span class="glyphicon glyphicon-chevron-down"></span> bash source
+</button>
+<pre style=""><code class="source bash">path=/home/matthewcannon/SerreDLab-3/cannonm3/cuyahoga/SecondPaper
+source /usr/local/packages/Qiime-1.8.0/activate.sh
+ 
+for file in ${path}/reanalysis10_12_16/evenSubsampleOtuTables/*.biom
+do
+  biom convert -i $file -o ${file%.biom}.txt --biom-to-classic-table
+done</code></pre>
+</div>
+<p id="from-combinedpcasv1.4.rmd">From combinedPCAsV1.4.Rmd</p>
+<div class="row">
+<button class="source R toggle btn btn-xs btn-primary">
+<span class="glyphicon glyphicon-chevron-down"></span> R source
+</button>
+<pre style=""><code class="source r">#setwd('/home/matthewcannon/SerreDLab-3/cannonm3/cuyahoga/SecondPaper')
+library(ggplot2)
+library(plyr)
+library(reshape2)
+library(grid)
+library(gridExtra)
+theme_set(theme_bw()) 
+set.seed(seed = 12345)</code></pre>
+</div>
+<div class="row">
+<button class="source R toggle btn btn-xs btn-primary">
+<span class="glyphicon glyphicon-chevron-down"></span> R source
+</button>
+<pre style=""><code class="source r">threePlotBox<- function(df, PCa, PCb) {
+  layoutP <- rbind(c(1, 2, 2, 2),
+                   c(1, 2, 2, 2),
+                   c(1, 2, 2, 2),
+                   c(4, 3, 3, 3))
+  alpha = 0.75
+  portionCols <- c("#ca0020", "#f4a582", "#92c5de", "#0571b0")
+
+  PCaPCb <- ggplot(df, aes_string(x = PCa, y = PCb)) + 
+    geom_point(aes(colour = paste(Portion, Rain)), size = 5, alpha = alpha) + 
+    scale_colour_manual(values = portionCols) +
+    xlab(paste(PCa, " (", round(as.numeric(explained[PCa]) * 100, 2), "%)", sep = "")) +
+    ylab(paste(PCb, " (", round(as.numeric(explained[PCb]) * 100, 2), "%)", sep = "")) +
+    theme(legend.box = "horizontal") +
+    theme(legend.title = element_blank())
+
+  PCaBoxPortion <- ggplot(df, aes_string(y = PCa)) + 
+     geom_boxplot(aes(x = paste(Portion, Rain), fill = paste(Portion, Rain)), alpha = alpha) +
+     scale_fill_manual(values = portionCols) +
+     xlab("") +
+     coord_flip() +
+     theme(legend.position = "none") + 
+     theme(axis.text.y = element_blank())
+
+  PCbBoxPortion <- ggplot(df, aes_string(y = PCb)) + 
+    geom_boxplot(aes(x = paste(Portion, Rain), fill = paste(Portion, Rain)), alpha = alpha) +
+    xlab("") + 
+    scale_fill_manual(values = portionCols) +
+    theme(legend.position = "none") + 
+    theme(axis.text.x = element_blank())
+
+  get_legend<-function(myggplot){ # taken from online
+    tmp <- ggplot_gtable(ggplot_build(myggplot))
+    leg <- which(sapply(tmp$grobs, function(x) x$name) == "guide-box")
+    legend <- tmp$grobs[[leg]]
+    return(legend)
+  }
+  test2 <- get_legend(PCaPCb)
+ 
+  print(
+    grid.arrange(PCbBoxPortion + theme(legend.position = "none"), 
+                 PCaPCb + theme(legend.position = "none"), 
+                 PCaBoxPortion + theme(legend.position = "none"), 
+                 layout_matrix = layoutP, 
+                 top = textGrob(paste(baseName, "\n\n")),
+                 test2)
+       )
+}
+
+calcAccuracy <- function(df, nreps, nclust) {
+  accuracy <- numeric()
+  df$group <- paste(df$Portion, df$Rain)
+  for(i in 1:nreps) {
+    df[[paste("fakecluster", i, sep = "_")]] <- sample(df$cluster)
+  }
+  clusterColumns <- grep("cluster", colnames(df))
+  for(column in 1:length(clusterColumns)) {
+    misMatch <- 0
+    taken <- character()
+    for(i in 1:nclust) {
+      j <- 1
+      good <- 0
+      subDf <- df[df[, clusterColumns[column]] == i,]
+      groups <- sort(summary(as.factor(subDf$group)), decreasing = T)
+      topGroup <- names(groups)[j]
+      while(good == 0) {
+        if(topGroup %in% taken & j <= nclust) {
+          j <- j + 1
+        } else if(j == nclust + 1) {
+          topGroup <- ""
+          good <- 1
+        } else {
+          topGroup <- names(groups)[j]
+          good <- 1
+          taken[i] <- topGroup
+        }
+      }
+      misMatch <- misMatch + sum(subDf$group != topGroup)
+    }
+    accuracy[column] <- (nrow(df) - misMatch) / nrow(df)
+  }
+  names(accuracy) <- colnames(df)[clusterColumns]
+  return(as.data.frame(accuracy))
+}</code></pre>
+</div>
+<h1 id="read-in-all-the-otu-counts">Read in all the OTU counts</h1>
+Cut out first line of otu tables to get rid of header
+<div class="row">
+<button class="source bash toggle btn btn-xs btn-primary">
+<span class="glyphicon glyphicon-chevron-down"></span> bash source
+</button>
+<pre style=""><code class="source bash">for dir in reanalysis10_12_16/diversity/* 
+do
+  base=${dir%95SubsetOTUs.fa}
+  base=${base##*/}
+  tail -n +2 ${dir}/bdiv/otu_table_even*.txt > reanalysis10_12_16/otuTables/${base}_otu_table.txt
+done
+
+for dir in reanalysis10_12_16/BA/cda/*
+do
+  base=${dir##*/} 
+  tail -n +2 ${dir}/*otu_table_even.txt > reanalysis10_12_16/otuTables/${base}_otu_table.txt
+done</code></pre>
+</div>
+<div class="row">
+<button class="source R toggle btn btn-xs btn-primary">
+<span class="glyphicon glyphicon-chevron-down"></span> R source
+</button>
+<pre style=""><code class="source r">method <- "quant" 
+files <- list.files(path = 'reanalysis10_12_16/otuTables/', pattern = "*otu_table.txt")
+      
+allOtus <- data.frame()
+# keep these samples
+keptColumns <- c("X.OTU.ID", "Primer", "X1D01", "X1D02", "X1D03", "X1D04", "X1D05", "X1D06", "X1D07", "X1D08", 
+                 "X1D09", "X1D10", "X1D12", "X1D15", "X1D17", "X1D18", "X1D19", "X1D22", "X1D23", "X1D26", "X1D28","X1D27", 
+                  "X1D29", "X1D30", "X1D31", "X1D32", "X1D33", "X1D34", "X1D35", "X1D36", "X1D37", "X1D38", "X1D39", "X1D40", 
+                 "X1D41", "X2D10", "X2D12", "X2D13", 
+                 "X2D16", "X2D18", "X2D19", "X2D20", "X2D21", "X2D22out", "X2D22in", "X2D23", "X2D27", "X2D28", 
+                 "X2D29", "X2D30", "X2D31", "X2D32", "X2D33", "X2D34", "X2D35", "X2D36", "X2D37", "MC01", "MC02", "MC03", 
+                 "MC04", "MC05", "MC06", "MC07", "MC08", "MC09", "MC10", "MC11", "MC12", "MC13", "MC14", "MC15")
+
+# But not these samples
+#  "X1D25", "X2D25", "X2D01", "X2D02", "X2D03", "X2D05", "X2D06", "X2D07", "X1D43", 
+sampleInfo <- read.delim("sampleInfo.txt")
+
+########################
+### Add in taxonomic info to the otuTable
+## bacterial and archaea
+
+#####
+## Gather up the "other" primers and make a table holding just the wanted taxa
+Algae <- read.delim("reanalysis10_12_16/reblast/23SrDNA95parsed.txt")
+colnames(Algae) <- c("gi","X.OTU.ID","identity","alignmentlength")
+Algae <- unique(Algae)
+AlgaePTaxa <- read.delim("reanalysis10_12_16/reblast/23SrDNA95SubsetTaxa.txt", header=FALSE)
+colnames(AlgaePTaxa) <- c("gi", "genusSpecies", "kingdom", "phylum", "class", "order", "family")
+algaeTaxaTable <- merge(AlgaePTaxa, Algae)
+
+Diatom <- read.delim("reanalysis10_12_16/reblast/Diatom18S95parsed.txt")
+colnames(Diatom) <- c("gi","X.OTU.ID","identity","alignmentlength")
+Diatom <- unique(Diatom)
+DiatomPTaxa <- read.delim("reanalysis10_12_16/reblast/Diatom18S95SubsetTaxa.txt", header=FALSE)
+colnames(DiatomPTaxa) <- c("gi", "genusSpecies", "kingdom", "phylum", "class", "order", "family")
+diatomTaxaTable <- merge(DiatomPTaxa, Diatom)
+
+Fungus <- read.delim("reanalysis10_12_16/reblast/FungusITS95parsed.txt")
+colnames(Fungus) <- c("gi","X.OTU.ID","identity","alignmentlength")
+Fungus <- unique(Fungus)
+FungusTaxa <- read.delim("reanalysis10_12_16/reblast/FungusITS95SubsetTaxa.txt", header=FALSE)
+colnames(FungusTaxa) <- c("gi", "genusSpecies", "kingdom", "phylum", "class", "order", "family")
+fungusTaxaTable <- merge(FungusTaxa, Fungus)
+
+otherTaxaTable <- rbind(algaeTaxaTable, diatomTaxaTable)
+otherTaxaTable <- rbind(otherTaxaTable, fungusTaxaTable)
+# Kick out all of the land plants. 
+otherTaxaTable <- subset(otherTaxaTable, 
+                         (phylum != "Streptophyta" | is.na(phylum)) | 
+                           (phylum == "Streptophyta" & class %in% 
+                              c("Mesostigmatophyceae", 
+                                "Klebsormidiophyceae",
+                                "Chlorokybophyceae", 
+                                "Zygnemophyceae")))
+###
+######################
+
+#####
+## Gather up the bacterial and archaea primers and make a table holding just the wanted taxa
+
+#bactTaxa <- read.delim("/SerreDLab/cannonm3/cuyahoga/bacteriaAnalysis/qiime/otus/uclust_assigned_taxonomy/rep_set_tax_assignments.txt", sep = "", header = F)
+bactTaxa <- read.delim("~/SerreDLab-3/databases/gg_13_8_otus/taxonomy/97_otu_taxonomy.txt", sep = "", header = F)
+colnames(bactTaxa) <- c("X.OTU.ID", "kingdom", "phylum", "class", "order", "family", "genus", "species")
+bactTaxa$genusSpecies <- paste(bactTaxa$genus, bactTaxa$species)
+
+#archTaxa <- read.delim("/SerreDLab/cannonm3/cuyahoga/bacteriaAnalysis/qiimeArchaea/otus/uclust_assigned_taxonomy/rep_set_tax_assignments.txt", sep = "", header = F)
+archTaxa <- read.delim("~/SerreDLab-3/databases/gg_13_8_otus/taxonomy/97_otu_taxonomy.txt", sep = "", header = F)
+colnames(archTaxa) <- c("X.OTU.ID", "kingdom", "phylum", "class", "order", "family", "genus", "species")
+archTaxa$genusSpecies <- paste(archTaxa$genus, archTaxa$species)
+##
+#####
+
+pdf(file = "PCAQuantSelectUncentered2.pdf",width = 10, height = 8, pointsize = 6)
+
+for(otuTableName in files) {
+  baseName <- gsub("_otu_table.txt", "", otuTableName)
+
+  otuTable <- read.delim(paste("reanalysis10_12_16/otuTables/", otuTableName, sep = ""), header = T)
+  otuTable$Primer <- gsub("_otu_.+", "", otuTableName)
+  
+  ########################
+  ### Drop plants from algae data
+  if(baseName %in% c("bact", "arch")) {
+    
+  } else { 
+    otuTable <- otuTable[otuTable$X.OTU.ID %in% otherTaxaTable$X.OTU.ID,]
+  }
+  ###
+  ########################
+  
+  ########################
+  ### Keep only the samples included in the analysis
+  otuTable <- otuTable[, colnames(otuTable) %in% keptColumns]
+  
+  df <- as.data.frame(t(otuTable[2:(ncol(otuTable) - 1)]))
+  colnames(df) <- otuTable$X.OTU.ID
+  df <- df[, colSums(df) != 0]
+  ###
+  ########################
+  
+  ########################
+  ### kick out outliers
+  if(baseName == "bact") {
+    df <- df[grep("X1D40", rownames(df), invert = T),]
+  }
+  if(baseName == "Diatom18S") {
+    df <- df[grep("X1D31|X1D27|MC03", rownames(df), invert = T),]
+  }
+  if(baseName == "arch") {
+    df <- df[grep("MC14", rownames(df), invert = T),]
+  }
+  ###
+  ########################
+  
+  ############# Drop low frequency OTUs
+  ###
+  dfPercents <- as.data.frame(t(apply(df, 1, function(x) x/sum(x))))
+  dfMax <- as.data.frame(apply(dfPercents, 2, function(x) max(x)))
+  colnames(dfMax) <- "max"
+  dfMax$X.OTU.ID <- rownames(dfMax)
+
+  df <- df[, dfMax$max > 0.01]
+  print(dim(df))
+
+  ###
+  ############
+  
+  ############
+  ### pairwise t-tests on data
+  df2 <- df
+  df2$label <- rownames(df2)
+  df2 <- merge(df2, sampleInfo)
+  df2$Group <- paste(df2$Portion, df2$Rain)
+  
+  pairwiseToMatrix <- function(x, y) {
+    results <- as.matrix(melt(pairwise.t.test(x, y)$p.value, p.adjust = "none", na.rm = T))
+    rownames(results) <- paste(results[,1], results[,2], sep = " - ")
+    results2 <- as.numeric(results[,3])
+    names(results2) <- rownames(results)
+    return(results2)
+  }
+  
+  df2Ttests <- as.data.frame(t(apply(df2[,grep("[a-zA-Z]", colnames(df2),invert = T)], 2, function(x) pairwiseToMatrix(x, df2$Group))))
+  # Bonferonni
+  df2TtestsBonf <- as.data.frame(apply(df2Ttests, 2, function(x) p.adjust(p = x, method = "bonf", n = ncol(df2Ttests) * nrow(df2Ttests))))
+  
+  df2Ttests$X.OTU.ID <- rownames(df2Ttests)
+  
+  groupMeans <- function(numbers, groups, na.rm = F) {
+    output <- numeric()
+    uniqGroups <- unique(groups)
+    for(i in 1:length(uniqGroups)) {
+      output[i] <- mean(numbers[grep(uniqGroups[i], groups)], na.rm = na.rm)
+      names(output)[i] <- as.character(uniqGroups[i])
+    }
+    return(output)
+  }
+  df2Means <- as.data.frame(t(apply(df2[,grep("[a-zA-Z]", colnames(df2),invert = T)], 2, function(x) groupMeans(x, df2$Group))))
+  
+  df2Means$X.OTU.ID <- rownames(df2Means)
+  df2testMeans <- merge(df2Ttests, df2Means)
+ 
+#   write.table(df2testMeans, 
+#               file = paste("reanalysis10_12_16/ttestOutput/", baseName, "_ttestOut.txt", sep = ""),
+#               quote = F,
+#               sep = "\t", 
+#               row.names = F)
+                 
+  ###
+  #############
+  
+#   dfRank <- rank(colSums(df))
+#   names(dfRank) <- 1:length(dfRank)
+#   dfRank <- sort(dfRank, decreasing = T)
+# 
+#   df2 <- df[, as.numeric(names(dfRank))]
+#   df2CumSum <- cumsum(colSums(df2))
+# 
+#  minOtuCount <- 20
+#  percentDataKept <- .7 
+  
+#   plot(df2CumSum)
+#   abline(h = percentDataKept * max(df2CumSum))
+  
+#   if(sum(df2CumSum < (percentDataKept * sum(colSums(df2)))) > minOtuCount) {
+#     df <- df2[, (df2CumSum < (percentDataKept * sum(colSums(df2))))]
+#   } else {
+#     df <- df2[, c(1:minOtuCount)]
+#   }
+  ###
+  ###############
+  
+  ###############
+  ### Do PCA
+  pcaOut <- prcomp(df, scale = T, center = F)
+  explained <- as.list((pcaOut$sdev)^2 / sum(pcaOut$sdev^2))
+  names(explained) <- colnames(pcaOut$x)
+  # print(plot(as.numeric(explained[1:10]), main = baseName))
+  PC <- as.data.frame(pcaOut$x)
+  PC$label <- rownames(df)
+  PrinComp <- merge(sampleInfo, PC)
+  ###
+  ##############
+  
+  #################
+  ### K-means clustering
+  nclust = 4
+  nsims = 1000
+  testK <- kmeans(PrinComp[, grep("PC1$|PC2$|PC3$", colnames(PrinComp))], centers = nclust, nstart = 25, iter.max = 1000)
+  PrinComp$cluster <- testK$cluster
+  
+  ClusterAcc <- calcAccuracy(PrinComp, nsims, nclust)
+  print(paste(baseName, 
+              " RealAcc:", ClusterAcc[1, 1], 
+              "SimAcc:", mean(ClusterAcc[grep("fake", rownames(ClusterAcc)), 1])))
+  print(paste("Number of sims better than actual:", 
+              sum(ClusterAcc[grep("fake", rownames(ClusterAcc)), 1] >= ClusterAcc[1,1]),
+              "out of", nsims))
+  ClusterAcc$group <- gsub("_.+", "", rownames(ClusterAcc))
+#   print(ggplot(ClusterAcc, aes(x = accuracy, fill = group)) + 
+#          geom_histogram(binwidth = 0.01) +
+#          ggtitle(baseName))
+  print(ggplot(PrinComp, aes(x=PC1, y=PC2, colour = as.factor(cluster), shape = paste(Portion, Rain))) + 
+    geom_point(size=5, alpha = 0.7) +
+    scale_shape_manual(values = c(15,16,17,18)) +
+    #geom_text(aes(label = label)) +
+    #stat_ellipse() +
+    ggtitle(paste(baseName, 
+                  " RealAcc: ", 
+                  round(100 * (ClusterAcc[1, 1]), digits = 1), 
+                  "%", 
+                  ", pval: ",
+                  round(sum(ClusterAcc[grep("fake", rownames(ClusterAcc)), 1] >= ClusterAcc[1, 1]) / nsims, digits = 3), 
+                  "\n",
+                  sep = "")))
+  
+  ###
+  ################
+
+  assign(paste("PrinComp", method, gsub(".txt", "", baseName), sep = "_"), PrinComp)
+  write.table(PrinComp, 
+              file = paste("reanalysis10_12_16/prinComps/", 
+                           baseName, "_prinComps.txt", sep = ""),
+              quote = F,
+              sep = "\t", 
+              row.names = F)
+  
+  print(paste("Number of OTUs: ", ncol(df)))
+  
+  threePlotBox(PrinComp, "PC1", "PC2")
+  threePlotBox(PrinComp, "PC2", "PC3")
+  #ggplot(PrinComp, aes(x = paste(Portion, Rain), y = PC2 * PC3, fill = paste(Portion, Rain))) + geom_boxplot()
+  
+  print(baseName)
+  print("PC1")
+  print(pairwise.t.test(PrinComp$PC1, paste(PrinComp$Portion, PrinComp$Rain), p.adjust.method = "bonf"))
+  print(pairwise.t.test(PrinComp$PC1, PrinComp$Portion, p.adjust.method = "bonf"))
+  print(pairwise.t.test(PrinComp$PC1, PrinComp$Rain, p.adjust.method = "bonf"))
+
+  print(baseName)
+  print("PC2")
+  print(pairwise.t.test(PrinComp$PC2, paste(PrinComp$Portion, PrinComp$Rain), p.adjust.method = "bonf"))
+  print(pairwise.t.test(PrinComp$PC2, PrinComp$Portion, p.adjust.method = "bonf"))
+  print(pairwise.t.test(PrinComp$PC2, PrinComp$Rain, p.adjust.method = "bonf"))
+
+  print(baseName)
+  print("PC3")
+  print(pairwise.t.test(PrinComp$PC3, paste(PrinComp$Portion, PrinComp$Rain), p.adjust.method = "bonf"))
+  print(pairwise.t.test(PrinComp$PC3, PrinComp$Portion, p.adjust.method = "bonf"))
+  print(pairwise.t.test(PrinComp$PC3, PrinComp$Rain, p.adjust.method = "bonf"))
+
+  ##############
+  ### Put taxa info into the loadings
+  test <- as.data.frame(pcaOut$rotation)
+  test$PC1rank <- rank(-1 * abs(test$PC1))
+  test$PC2rank <- rank(-1 * abs(test$PC2))
+
+  test$X.OTU.ID <- rownames(test)
+  if(baseName == "bact") {
+    test2 <- merge(test, bactTaxa, all.x=T)
+  } else if(baseName == "arch") {
+    test2 <- merge(test, archTaxa, all.x=T)
+  } else { 
+    test2 <- merge(test, otherTaxaTable, all.x=T)
+  }
+  test2 <- merge(test2, otuTable, all.x=T)
+  test2 <- merge(test2, df2testMeans, all.x = T, by = "X.OTU.ID")
+
+  # And print it out
+  assign(paste(gsub(".txt", "", baseName), "loadingsTaxa", sep = "_"), test2)
+  write.table(test2, 
+              file = paste("loadingsTaxa/", gsub(".txt", "", baseName), "_QuantLoadingsTaxa.txt", sep = ""),
+              quote = F,
+              sep = "\t", 
+              row.names = F)
+  ###
+  #############
+
+  ##############  Look at OTUs that best separate the data
+  
+  portionCols <- c("#ca0020", "#f4a582", "#92c5de", "#0571b0")
+  ##### PC1
+  # print(plot(test$PC1rank, log10(abs(test$PC1)), pch = ".", main = paste(baseName, "rank of influence on PC1")))
+  print(test[test$PC1rank < 10, c(1, ncol(test))])
+  ##### PC2
+  # print(plot(test$PC2rank, log10(abs(test$PC2)), pch = ".", main = paste(baseName, "rank of influence on PC2")))
+  print(test[test$PC2rank < 10, c(2, ncol(test))])
+  
+  ##### PC3
+  test$PC3rank <- rank(-1 * abs(test$PC3))
+  
+  ##### Plot the top 9 OTUs for PC1
+  topPC1Otus <- test[test$PC1rank < 10, c(1, grep("PC1rank", colnames(test)))]
+  topPC1Otus$X.OTU.ID <- rownames(topPC1Otus)
+  
+  topOtusPC1 <- otuTable[otuTable$X.OTU.ID %in% topPC1Otus$X.OTU.ID,]
+  topOtusPC1 <- merge(topPC1Otus, topOtusPC1)
+  topOtusPC1 <- melt(topOtusPC1, id = c("X.OTU.ID", "PC1", "PC1rank", "Primer"), variable.name = "label", value.name = "otuCount")
+  topOtusPC1 <- merge(topOtusPC1, sampleInfo)
+  topOtusPC1$X.OTU.ID <- gsub("New.CleanUp.Reference","", topOtusPC1$X.OTU.ID)
+  topOtusPC1$X.OTU.ID <- gsub("New.Reference","", topOtusPC1$X.OTU.ID)
+
+#   print(ggplot(topOtusPC1, aes(x = paste(Portion, Rain), y = otuCount, fill = paste(Portion,Rain))) + 
+#     geom_boxplot(alpha = 0.75) + 
+#     facet_wrap(~ PC1rank + X.OTU.ID, scales = "free_y") +
+#     #scale_y_log10() + 
+#     scale_fill_manual(values = portionCols) +
+#     xlab("") + ylab("OTU count") +
+#     ggtitle(paste(baseName, "PC1 top OTUs", "\n")) )
+  
+  ##### Plot the top 9 OTUs for PC2
+  topPC2Otus <- test[test$PC2rank < 10, c(2, grep("PC2rank", colnames(test)))]
+  topPC2Otus$X.OTU.ID <- rownames(topPC2Otus)
+  
+  topOtusPC2 <- otuTable[otuTable$X.OTU.ID %in% topPC2Otus$X.OTU.ID,]
+  topOtusPC2 <- merge(topPC2Otus, topOtusPC2)
+  topOtusPC2 <- melt(topOtusPC2,id = c("X.OTU.ID", "PC2", "PC2rank","Primer"),variable.name = "label", value.name = "otuCount")
+  topOtusPC2 <- merge(topOtusPC2, sampleInfo)
+  topOtusPC2$X.OTU.ID <- gsub("New.CleanUp.Reference","", topOtusPC2$X.OTU.ID)
+  topOtusPC2$X.OTU.ID <- gsub("New.Reference","", topOtusPC2$X.OTU.ID)
+ 
+#   print(ggplot(topOtusPC2, aes(x=paste(Portion,Rain), y = otuCount, fill = paste(Portion,Rain))) + 
+#     geom_boxplot(alpha = 0.75) + 
+#     #geom_point(size = 3, alpha = 0.5) +
+#     facet_wrap(~ PC2rank + X.OTU.ID, scales = "free_y") +
+#     scale_fill_manual(values = portionCols) +
+#     #scale_y_log10() + 
+#     xlab("") + ylab("OTU count") +
+#     ggtitle(paste(baseName, "PC2 top OTUs", "\n")) )
+  
+  #################
+  ### plotting OTU abundance vs PCA loadings
+  test$OTU <- rownames(test) # loadings
+  otuAbund <- as.data.frame(colSums(df))
+  colnames(otuAbund) <- "abund"
+  otuAbund$OTU <- rownames(otuAbund)
+  
+  abundVsLoad <- merge(test, otuAbund)
+ 
+#   print(ggplot(abundVsLoad, aes(x = log10(abund), y = PC1)) + 
+#     geom_point(alpha = 0.2) +
+#     ylab("PC1 influence") +
+#     ggtitle(paste(baseName, "PC1")))
+#   
+#   print(ggplot(abundVsLoad, aes(x = log10(abund), y = PC1rank)) + 
+#     geom_point(alpha = 0.2) +
+#     ylab("PC1 rank") +
+#     ggtitle(paste(baseName, "PC1")))
+#   
+#   print(ggplot(abundVsLoad, aes(x = log10(abund), y = PC2)) + 
+#     geom_point(alpha = 0.2) +
+#     ylab("PC2 influence") +
+#     ggtitle(paste(baseName, "PC2")))
+#   
+#   print(ggplot(abundVsLoad, aes(x = log10(abund), y = PC2rank)) + 
+#     geom_point(alpha = 0.2) +
+#     ylab("PC2 rank") +
+#     ggtitle(paste(baseName, "PC2")))
+# 
+#   print(ggplot(abundVsLoad, aes(x = log10(abund), y = PC3)) + 
+#     geom_point(alpha = 0.2) +
+#     ylab("PC3 influence") +
+#     ggtitle(paste(baseName, "PC3")))
+  
+
+  ###
+  ################
+  
+  # print(plot(1,1,main="placeholder"))
+  print("########################################\n\n\n")
+  
+  
+  ############# Collect all OTUs together
+  ###
+  currentDf <- as.data.frame(t(df))
+  currentDf$Primer <- baseName
+  currentDf$X.OTU.ID <- rownames(currentDf)
+  allOtus <- rbind.fill(allOtus, currentDf)
+  #rownames(allOtus2) <- c(rownames(allOtus), rownames(currentDf))
+  #allOtus <- allOtus2
+  
+  ###
+  #############
+  
+}
+dev.off()
+allOtus$X.OTU.ID <- 
+write.table(allOtus, file = "allOtus.txt", quote = F, sep = "\t", row.names = F)</code></pre>
+</div>
+<h1 id="pca-with-all-otus">PCA with all OTUs</h1>
+<div class="row">
+<button class="source R toggle btn btn-xs btn-primary">
+<span class="glyphicon glyphicon-chevron-down"></span> R source
+</button>
+<pre style=""><code class="source r">pdf(file = "PCAQuantallOtus.pdf",width = 10, height = 8, pointsize = 6)
+    
+allOtus <- read.delim("allOtus.txt", header = T)
+rownames(allOtus) <- paste(allOtus$X.OTU.ID, allOtus$Primer, sep = "_") 
+df <- as.data.frame(t(allOtus[grep("X1D|X2D|M", colnames(allOtus))]))
+df <- na.omit(df)
+df <- df[, colSums(df) != 0] 
+
+sampleInfo <- read.delim("sampleInfo.txt")
+
+###############
+### Do PCA
+pcaOut <- prcomp(df, scale = T, center = F)
+explained <- as.list((pcaOut$sdev)^2 / sum(pcaOut$sdev^2))
+names(explained) <- colnames(pcaOut$x)
+print(plot(as.numeric(explained[1:10]), main = "allOtus"))
+PC <- as.data.frame(pcaOut$x)
+PC$label <- rownames(df)
+PrinComp <- merge(sampleInfo, PC)
+###
+##############
+ 
+#################
+### K-mean clustering
+nclust = 4
+nsims = 1000
+testK <- kmeans(PrinComp[, grep("PC1$|PC2$|PC3$", colnames(PrinComp))], centers = nclust, nstart = 25, iter.max = 1000)
+PrinComp$cluster <- testK$cluster
+
+ClusterAcc <- calcAccuracy(PrinComp, nsims, nclust)
+print(paste("allOtus", 
+            " RealAcc:", ClusterAcc[1, 1], 
+            "SimAcc:", mean(ClusterAcc[grep("fake", rownames(ClusterAcc)), 1])))
+print(paste("Number of sims better than actual:", 
+            sum(ClusterAcc[grep("fake", rownames(ClusterAcc)), 1] >= ClusterAcc[1,1]),
+            "out of", nsims))
+ClusterAcc$group <- gsub("_.+", "", rownames(ClusterAcc))
+print(ggplot(ClusterAcc, aes(x = accuracy, fill = group)) + 
+       geom_histogram(binwidth = 0.01) +
+       ggtitle("allOtus"))
+print(ggplot(PrinComp, aes(x=PC1, y=PC2, colour = as.factor(cluster), shape = paste(Portion, Rain))) + 
+  geom_point(size=5, alpha = 0.7) +
+  scale_shape_manual(values = c(15,16,17,18)) +
+  #geom_text(aes(label = label)) +
+  #stat_ellipse() +
+  ggtitle(paste("allOtus", 
+                " RealAcc: ", 
+                round(100 * (ClusterAcc[1, 1]), digits = 1), 
+                "%", 
+                ", pval: ",
+                round(sum(ClusterAcc[grep("fake", rownames(ClusterAcc)), 1] >= ClusterAcc[1, 1]) / nsims, digits = 3), 
+                "\n",
+                sep = "")))
+###
+################
+
+print(paste("Number of OTUs: ", ncol(df)))
+
+baseName = "allOtus"
+threePlotBox(PrinComp, "PC1", "PC2")
+threePlotBox(PrinComp, "PC2", "PC3")
+
+print(baseName)
+print(pairwise.t.test(PrinComp$PC1, paste(PrinComp$Portion, PrinComp$Rain), p.adjust.method = "bonf"))
+print(pairwise.t.test(PrinComp$PC1, PrinComp$Portion, p.adjust.method = "bonf"))
+print(pairwise.t.test(PrinComp$PC1, PrinComp$Rain, p.adjust.method = "bonf"))
+
+print("PC2")
+print(pairwise.t.test(PrinComp$PC2, paste(PrinComp$Portion, PrinComp$Rain), p.adjust.method = "bonf"))
+print(pairwise.t.test(PrinComp$PC2, PrinComp$Portion, p.adjust.method = "bonf"))
+print(pairwise.t.test(PrinComp$PC2, PrinComp$Rain, p.adjust.method = "bonf"))
+
+print("PC3")
+print(pairwise.t.test(PrinComp$PC3, paste(PrinComp$Portion, PrinComp$Rain), p.adjust.method = "bonf"))
+print(pairwise.t.test(PrinComp$PC3, PrinComp$Portion, p.adjust.method = "bonf"))
+print(pairwise.t.test(PrinComp$PC3, PrinComp$Rain, p.adjust.method = "bonf"))
+
+dev.off()
+
+##############
+### Put taxa info into the loadings
+
+#####
+## Gather up the "other" primers and make a table holding just the wanted taxa
+Algae <- read.delim("reanalysis10_12_16/reblast/23SrDNA95parsed.txt")
+colnames(Algae) <- c("gi","X.OTU.ID","identity","alignmentlength")
+Algae <- unique(Algae)
+AlgaePTaxa <- read.delim("reanalysis10_12_16/reblast/23SrDNA95SubsetTaxa.txt", header=FALSE)
+colnames(AlgaePTaxa) <- c("gi", "genusSpecies", "kingdom", "phylum", "class", "order", "family")
+algaeTaxaTable <- merge(AlgaePTaxa, Algae)
+
+Diatom <- read.delim("reanalysis10_12_16/reblast/Diatom18S95parsed.txt")
+colnames(Diatom) <- c("gi","X.OTU.ID","identity","alignmentlength")
+Diatom <- unique(Diatom)
+DiatomPTaxa <- read.delim("reanalysis10_12_16/reblast/Diatom18S95SubsetTaxa.txt", header=FALSE)
+colnames(DiatomPTaxa) <- c("gi", "genusSpecies", "kingdom", "phylum", "class", "order", "family")
+diatomTaxaTable <- merge(DiatomPTaxa, Diatom)
+
+Fungus <- read.delim("reanalysis10_12_16/reblast/FungusITS95parsed.txt")
+colnames(Fungus) <- c("gi","X.OTU.ID","identity","alignmentlength")
+Fungus <- unique(Fungus)
+FungusTaxa <- read.delim("reanalysis10_12_16/reblast/FungusITS95SubsetTaxa.txt", header=FALSE)
+colnames(FungusTaxa) <- c("gi", "genusSpecies", "kingdom", "phylum", "class", "order", "family")
+fungusTaxaTable <- merge(FungusTaxa, Fungus)
+
+otherTaxaTable <- rbind(algaeTaxaTable, diatomTaxaTable)
+otherTaxaTable <- rbind(otherTaxaTable, fungusTaxaTable)
+# Kick out all of the land plants. 
+otherTaxaTable <- subset(otherTaxaTable, 
+                         (phylum != "Streptophyta" | is.na(phylum)) | 
+                           (phylum == "Streptophyta" & class %in% 
+                              c("Mesostigmatophyceae", 
+                                "Klebsormidiophyceae",
+                                "Chlorokybophyceae", 
+                                "Zygnemophyceae")))
+###
+#####
+
+#####
+## Gather up the bacterial and archaea primers and make a table holding just the wanted taxa
+
+BATaxa <- read.delim("~/SerreDLab-3/databases/gg_13_8_otus/taxonomy/97_otu_taxonomy.txt", sep = "", header = F)
+colnames(BATaxa) <- c("X.OTU.ID", "kingdom", "phylum", "class", "order", "family", "genus", "species")
+BATaxa$genusSpecies <- paste(BATaxa$genus, BATaxa$species)
+BATaxa$X.OTU.ID <- as.numeric(as.character(BATaxa$X.OTU.ID))
+
+# Put it all together
+allTaxaTable <- rbind.fill(otherTaxaTable, BATaxa)
+
+write.table(allTaxaTable, 
+            file = paste("allTaxaTable.txt"),
+            quote = F,
+            sep = "\t", 
+            row.names = F)
+
+##
+#####
+
+############
+### pairwise t-tests on data
+df2 <- df
+df2$label <- rownames(df2)
+df2 <- merge(df2, sampleInfo)
+df2$Group <- paste(df2$Portion, df2$Rain)
+
+pairwiseToMatrix <- function(x, y) {
+  results <- as.matrix(melt(pairwise.t.test(x, y)$p.value, p.adjust = "none", na.rm = T))
+  rownames(results) <- paste(results[,1], results[,2], sep = " - ")
+  results2 <- as.numeric(results[,3])
+  names(results2) <- rownames(results)
+  return(results2)
+}
+
+df2Ttests <- as.data.frame(t(apply(df2[,grep("^[0-9]", colnames(df2))], 2, function(x) pairwiseToMatrix(x, df2$Group))))
+# Bonferonni
+df2TtestsBonf <- as.data.frame(apply(df2Ttests, 2, function(x) p.adjust(p = x, method = "bonf", n = ncol(df2Ttests) * nrow(df2Ttests))))
+
+df2Ttests$X.OTU.ID <- gsub("_.+", "", rownames(df2Ttests))
+
+groupMeans <- function(numbers, groups, na.rm = F) {
+  output <- numeric()
+  uniqGroups <- unique(groups)
+  for(i in 1:length(uniqGroups)) {
+    output[i] <- mean(numbers[grep(uniqGroups[i], groups)], na.rm = na.rm)
+    names(output)[i] <- as.character(uniqGroups[i])
+  }
+  return(output)
+}
+df2Means <- as.data.frame(t(apply(df2[,grep("^[0-9]", colnames(df2))], 2, function(x) groupMeans(x, df2$Group))))
+
+df2Means$X.OTU.ID <- gsub("_.+", "", rownames(df2Means))
+df2testMeans <- merge(df2Ttests, df2Means)
+
+###
+#############
+
+test <- as.data.frame(pcaOut$rotation)
+test$PC1rank <- rank(-1 * abs(test$PC1))
+test$PC2rank <- rank(-1 * abs(test$PC2))
+
+test$X.OTU.ID <- rownames(test)
+test$Primer <- gsub(".+_","", test$X.OTU.ID)
+test$X.OTU.ID <- gsub("_.+", "", test$X.OTU.ID)
+test2 <- merge(test, allTaxaTable, all.x=T, by = "X.OTU.ID")
+test2 <- merge(test2, df2testMeans, all.x = T, by = "X.OTU.ID")
+
+# And print it out
+write.table(test2, 
+            file = paste("loadingsTaxa/", "allOtus_QuantLoadingsTaxa.txt", sep = ""),
+            quote = F,
+            sep = "\t", 
+            row.names = F)
+###
+#############</code></pre>
+</div>
+<h1 id="pca-analysis-on-evenly-subsampled-datasets">PCA analysis on evenly subsampled datasets</h1>
+<h2 id="read-in-all-the-otu-counts-1">Read in all the OTU counts</h2>
+manually cut out first line of otu tables to get rid of header
+<div class="row">
+<button class="source bash toggle btn btn-xs btn-primary">
+<span class="glyphicon glyphicon-chevron-down"></span> bash source
+</button>
+<pre style=""><code class="source bash">for file in reanalysis10_12_16/evenSubsampleOtuTables/*.txt 
+do
+  base=${file%.txt}
+  base=${base##*/}
+  tail -n +2 ${file} > reanalysis10_12_16/evenSubsampleOtuTables/${base}Fixed.txt
+done</code></pre>
+</div>
+<div class="row">
+<button class="source R toggle btn btn-xs btn-primary">
+<span class="glyphicon glyphicon-chevron-down"></span> R source
+</button>
+<pre style=""><code class="source r">method <- "quant"
+files <- list.files(path = 'reanalysis10_12_16/evenSubsampleOtuTables/', pattern = "*Fixed.txt")
+ 
+# keep these samples 
+keptColumns <- c("X.OTU.ID", "Primer", "X1D01", "X1D02", "X1D03", "X1D04", "X1D05", "X1D06", "X1D07", "X1D08", "X1D40",  "X1D27", "X1D30", "X1D10",
+                 "X1D09", "X1D10", "X1D12", "X1D15", "X1D17", "X1D18", "X1D19", "X1D22", "X1D23", "X1D26", 
+                 "X1D28", "X1D29",  "X1D31", "X1D32", "X1D33", "X1D34", "X1D35", "X1D36", "X1D37", "X1D38", "X1D39", 
+                 "X1D41", "X2D10", "X2D12", "X2D13", 
+                 "X2D16", "X2D18", "X2D19", "X2D20", "X2D21", "X2D22out", "X2D22in", "X2D23", "X2D27", "X2D28", 
+                 "X2D29", "X2D30", "X2D31", "X2D32", "X2D33", "X2D34", "X2D35", "X2D36", "X2D37", "MC01", "MC02", "MC03", 
+                 "MC04", "MC05", "MC06", "MC07", "MC08", "MC09", "MC10", "MC11", "MC12", "MC13", "MC14", "MC15")
+
+sampleInfo <- read.delim("sampleInfo.txt")
+
+########################
+### Add in taxonomic info to the otuTable
+## bacterial and archaea
+
+#####
+## Gather up the "other" primers and make a table holding just the wanted taxa
+Algae <- read.delim("reanalysis10_12_16/reblast/23SrDNA95parsed.txt")
+colnames(Algae) <- c("gi","X.OTU.ID","identity","alignmentlength")
+Algae <- unique(Algae)
+AlgaePTaxa <- read.delim("reanalysis10_12_16/reblast/23SrDNA95SubsetTaxa.txt", header=FALSE)
+colnames(AlgaePTaxa) <- c("gi", "genusSpecies", "kingdom", "phylum", "class", "order", "family")
+algaeTaxaTable <- merge(AlgaePTaxa, Algae)
+
+Diatom <- read.delim("reanalysis10_12_16/reblast/Diatom18S95parsed.txt")
+colnames(Diatom) <- c("gi","X.OTU.ID","identity","alignmentlength")
+Diatom <- unique(Diatom)
+DiatomPTaxa <- read.delim("reanalysis10_12_16/reblast/Diatom18S95SubsetTaxa.txt", header=FALSE)
+colnames(DiatomPTaxa) <- c("gi", "genusSpecies", "kingdom", "phylum", "class", "order", "family")
+diatomTaxaTable <- merge(DiatomPTaxa, Diatom)
+
+Fungus <- read.delim("reanalysis10_12_16/reblast/FungusITS95parsed.txt")
+colnames(Fungus) <- c("gi","X.OTU.ID","identity","alignmentlength")
+Fungus <- unique(Fungus)
+FungusTaxa <- read.delim("reanalysis10_12_16/reblast/FungusITS95SubsetTaxa.txt", header=FALSE)
+colnames(FungusTaxa) <- c("gi", "genusSpecies", "kingdom", "phylum", "class", "order", "family")
+fungusTaxaTable <- merge(FungusTaxa, Fungus)
+
+otherTaxaTable <- rbind(algaeTaxaTable, diatomTaxaTable)
+otherTaxaTable <- rbind(otherTaxaTable, fungusTaxaTable)
+# Kick out all of the land plants. 
+otherTaxaTable <- subset(otherTaxaTable, 
+                         (phylum != "Streptophyta" | is.na(phylum)) | 
+                           (phylum == "Streptophyta" & class %in% 
+                              c("Mesostigmatophyceae", 
+                                "Klebsormidiophyceae",
+                                "Chlorokybophyceae", 
+                                "Zygnemophyceae")))
+###
+######################
+
+#####
+## Gather up the bacterial and archaea primers and make a table holding just the wanted taxa
+
+#bactTaxa <- read.delim("/SerreDLab/cannonm3/cuyahoga/bacteriaAnalysis/qiime/otus/uclust_assigned_taxonomy/rep_set_tax_assignments.txt", sep = "", header = F)
+bactTaxa <- read.delim("~/SerreDLab-3/databases/gg_13_8_otus/taxonomy/97_otu_taxonomy.txt", sep = "", header = F)
+colnames(bactTaxa) <- c("X.OTU.ID", "kingdom", "phylum", "class", "order", "family", "genus", "species")
+bactTaxa$genusSpecies <- paste(bactTaxa$genus, bactTaxa$species)
+
+#archTaxa <- read.delim("/SerreDLab/cannonm3/cuyahoga/bacteriaAnalysis/qiimeArchaea/otus/uclust_assigned_taxonomy/rep_set_tax_assignments.txt", sep = "", header = F)
+archTaxa <- read.delim("~/SerreDLab-3/databases/gg_13_8_otus/taxonomy/97_otu_taxonomy.txt", sep = "", header = F)
+colnames(archTaxa) <- c("X.OTU.ID", "kingdom", "phylum", "class", "order", "family", "genus", "species")
+archTaxa$genusSpecies <- paste(archTaxa$genus, archTaxa$species)
+##
+#####
+
+pdf(file = "PCAQuantSelectUncenteredEven.pdf",width = 10, height = 8, pointsize = 6)
+for(otuTableName in files) {
+  baseName <- gsub("Fixed.txt", "", otuTableName)
+
+  otuTable <- read.delim(paste("reanalysis10_12_16/evenSubsampleOtuTables/", otuTableName, sep = ""), header = T)
+  otuTable$Primer <- baseName
+  
+  ########################
+  ### Drop plants from algae data
+  if(baseName %in% c("bact", "arch")) {
+    
+  } else { 
+    otuTable <- otuTable[otuTable$X.OTU.ID %in% otherTaxaTable$X.OTU.ID,]
+  }
+  ###
+  ########################
+  
+  # Keep only the samples included in the analysis
+  otuTable <- otuTable[, colnames(otuTable) %in% keptColumns]
+  
+  df <- as.data.frame(t(otuTable[2:(ncol(otuTable) - 1)]))
+  colnames(df) <- otuTable$X.OTU.ID
+  df <- df[, colSums(df) != 0]
+  
+  ########################
+  ### kick out outliers
+  if(baseName == "bact") {
+    df <- df[grep("X1D40", rownames(df), invert = T),]
+  }
+  if(baseName == "Diatom18S") {
+    df <- df[grep("X1D37", rownames(df), invert = T),]
+  }
+  if(baseName == "FungusITS") {
+    df <- df[grep("X2D18", rownames(df), invert = T),]
+  }
+  if(baseName == "arch") {
+    df <- df[grep("MC07", rownames(df), invert = T),]
+  }
+  ###
+  ########################
+
+  ############# Drop low frequency OTUs
+  ### get rid of any OTUs < 1% in all samples
+  dfPercents <- as.data.frame(t(apply(df, 1, function(x) x/sum(x))))
+  dfMax <- as.data.frame(apply(dfPercents, 2, function(x) max(x)))
+  colnames(dfMax) <- "max"
+  dfMax$X.OTU.ID <- rownames(dfMax)
+
+  dfRed <- df[, dfMax$max > 0.01]
+  print(dim(dfRed))
+  ###
+  ###############
+   
+  ###############
+  ### Do PCA
+  pcaOut <- prcomp(dfRed, scale = T, center = F)
+  explained <- as.list((pcaOut$sdev)^2 / sum(pcaOut$sdev^2))
+  names(explained) <- colnames(pcaOut$x)
+  print(plot(as.numeric(explained[1:10]), main = baseName))
+  PC <- as.data.frame(pcaOut$x)
+  PC$label <- rownames(dfRed)
+  PrinComp <- merge(sampleInfo, PC)
+  ###
+  ##############
+  
+  #################
+  ### K-mean clustering
+  nclust = 4
+  nsims = 1000
+  testK <- kmeans(PrinComp[, grep("PC1$|PC2$|PC3$", colnames(PrinComp))], centers = nclust, nstart = 25, iter.max = 1000)
+  PrinComp$cluster <- testK$cluster
+  
+  ClusterAcc <- calcAccuracy(PrinComp, nsims, nclust)
+  print(paste(baseName, 
+              " RealAcc:", ClusterAcc[1, 1], 
+              "SimAcc:", mean(ClusterAcc[grep("fake", rownames(ClusterAcc)), 1])))
+  print(paste("Number of sims better than actual:", 
+              sum(ClusterAcc[grep("fake", rownames(ClusterAcc)), 1] >= ClusterAcc[1,1]),
+              "out of", nsims))
+  ClusterAcc$group <- gsub("_.+", "", rownames(ClusterAcc))
+  print(ggplot(ClusterAcc, aes(x = accuracy, fill = group)) + 
+         geom_histogram(binwidth = 0.01) +
+         ggtitle(baseName))
+  print(ggplot(PrinComp, aes(x=PC1, y=PC2, colour = as.factor(cluster), shape = paste(Portion, Rain))) + 
+    geom_point(size=5, alpha = 0.7) +
+    scale_shape_manual(values = c(15,16,17,18)) +
+    #geom_text(aes(label = label)) +
+    #stat_ellipse() +
+    ggtitle(paste(baseName, 
+                  " RealAcc: ", 
+                  round(100 * (ClusterAcc[1, 1]), digits = 1), 
+                  "%", 
+                  ", pval: ",
+                  round(sum(ClusterAcc[grep("fake", rownames(ClusterAcc)), 1] >= ClusterAcc[1, 1]) / nsims, digits = 3), 
+                  "\n",
+                  sep = "")))
+  
+  ###
+  ################
+
+  assign(paste("PrinComp", method, gsub(".txt", "", baseName), sep = "_"), PrinComp)
+  print(paste("Number of OTUs: ", ncol(dfRed)))
+  
+  threePlotBox(PrinComp, "PC1", "PC2")
+  threePlotBox(PrinComp, "PC2", "PC3")
+
+  print(baseName)
+  print("PC1")
+  print(pairwise.t.test(PrinComp$PC1, paste(PrinComp$Portion, PrinComp$Rain), p.adjust.method = "bonf"))
+  print(pairwise.t.test(PrinComp$PC1, PrinComp$Portion, p.adjust.method = "bonf"))
+  print(pairwise.t.test(PrinComp$PC1, PrinComp$Rain, p.adjust.method = "bonf"))
+
+  print(baseName)
+  print("PC2")
+  print(pairwise.t.test(PrinComp$PC2, paste(PrinComp$Portion, PrinComp$Rain), p.adjust.method = "bonf"))
+  print(pairwise.t.test(PrinComp$PC2, PrinComp$Portion, p.adjust.method = "bonf"))
+  print(pairwise.t.test(PrinComp$PC2, PrinComp$Rain, p.adjust.method = "bonf"))
+
+  print(baseName)
+  print("PC3")
+  print(pairwise.t.test(PrinComp$PC3, paste(PrinComp$Portion, PrinComp$Rain), p.adjust.method = "bonf"))
+  print(pairwise.t.test(PrinComp$PC3, PrinComp$Portion, p.adjust.method = "bonf"))
+  print(pairwise.t.test(PrinComp$PC3, PrinComp$Rain, p.adjust.method = "bonf"))
+
+  #print(plot(1,1,main="placeholder"))
+  print("########################################\n\n\n")
+}
+dev.off()</code></pre>
+</div>
+<div class="row">
+<button class="source R toggle btn btn-xs btn-primary">
+<span class="glyphicon glyphicon-chevron-down"></span> R source
+</button>
+<pre style=""><code class="source r">files <- list.files("reanalysis10_12_16/prinComps/","*.txt")
+PCdf <- data.frame()
+for(file in files) {
+  data <- read.delim(paste("reanalysis10_12_16/prinComps/", file, sep = ""))
+  data$Group <- paste(data$Portion, data$Rain)
+  data <- data[,grep("label|Group|PC1$|PC2$|PC3$", colnames(data))]
+  colnames(data) <- paste(gsub("_prinComps.txt", "", file), colnames(data))
+  colnames(data)[grep("label", colnames(data))] <- "label"
+  colnames(data)[grep("Group", colnames(data))] <- "Group"
+  PCdf <- join(PCdf, data, type = "full")
+  rm(data)
+}
+files <- gsub("_prinComps.txt", "", files)
+
+pdf("PrinCompCorrelationsV2.pdf", width = 10, height = 8, pointsize = 6)
+
+### Do PCA on principle components
+df4PCA <- as.data.frame(t(na.omit(PCdf[,grep("label|Group", colnames(PCdf), invert = T)])))
+pcaOut <- prcomp(df4PCA, scale = T, center = F)
+explained <- as.list((pcaOut$sdev)^2 / sum(pcaOut$sdev^2))
+names(explained) <- colnames(pcaOut$x)
+PC <- as.data.frame(pcaOut$x)
+PC$label <- rownames(PC)
+PC$label <- gsub("23SrDNA", "23S Algae", PC$label)
+PC$label <- gsub("bact", "16S Bact", PC$label)
+PC$label <- gsub("arch", "16S Arch", PC$label)
+PC$label <- gsub("Diatom18S", "18S Diatom", PC$label)
+PC$label <- gsub("FungusITS", "ITS Fungus", PC$label)
+PC$PC <- gsub(".+PC", "PC", PC$label)
+print(ggplot(PC, aes(x = PC1, y = PC2, colour = PC)) + 
+    geom_text(aes(label = label)) +
+    xlab(paste("PC1 (percent explained: ", round_any(as.numeric(explained[1]) * 100, accuracy = 0.1), "%)", sep = "")) +
+    ylab(paste("PC2 (percent explained: ", round_any(as.numeric(explained[2]) * 100, accuracy = 0.1), "%)", sep = "")) +
+      xlim(-15, 10)
+      )
+
+print(ggplot(PC, aes(x = PC2, y = PC3, colour = PC)) + 
+    geom_text(aes(label = label)) +
+    xlab(paste("PC2 (percent explained: ", round_any(as.numeric(explained[2]) * 100, accuracy = 0.1), "%)", sep = "")) +
+    ylab(paste("PC3 (percent explained: ", round_any(as.numeric(explained[3]) * 100, accuracy = 0.1), "%)", sep = "")) 
+    )
+###
+
+for(i in 1:(length(files) - 1)) {
+  for(j in (i + 1):length(files)) {
+    print(paste(i, j))
+    for(pc in c("PC1", "PC2", "PC3")) {
+      reg <- lm(PCdf[[paste(files[i], pc)]] ~ PCdf[[paste(files[j], pc)]])
+      rsq <- round_any(summary(reg)$adj.r.squared, accuracy = .01)
+      pval  <- signif(summary(reg)$coef[2,4], digits = 2)
+      print(
+            ggplot(PCdf, aes(
+                            x = get(paste(files[i], pc)),
+                            y = get(paste(files[j], pc))
+                            )
+                  ) +
+              geom_point(aes(colour = Group)) +
+              ggtitle(paste(files[i], pc, "vs", files[j], pc,
+                            "\nAdj. R-squared: ", rsq, ", p-value: ", pval)) +
+              geom_smooth(method = "lm", se = FALSE) +
+              xlab(paste(files[i], pc)) +
+              ylab(paste(files[j], pc))
+            )
+    }
+  }
+}
+dev.off()</code></pre>
+</div>
+<div class="row">
+
+</div>
+<div class="row">
+<button class="source perl toggle btn btn-xs btn-primary">
+<span class="glyphicon glyphicon-chevron-down"></span> perl source
+</button>
+<pre style=""><code class="source perl">#!/usr/bin/perl
+use strict;
+use warnings;
+use Getopt::Long;
+use Pod::Usage;
+
+##############################
+# By Matt Cannon
+# Date: 12/1/16
+# Last modified: 12/1/16
+# Title: collapseColumns.pl
+# Purpose: Given a column that contains a unique identifier, collapse all other columns, 
+#          concatenating them with a symbol
+##############################
+
+##############################
+# Options
+##############################
+
+
+my $verbose;
+my $help;
+my $input;
+my $uniqueColumn;
+my $collapseString = ",";
+
+# i = integer, s = string
+GetOptions ("verbose"           => \$verbose,
+            "help"              => \$help,
+            "input=s"=> \$input,
+            "uniqueColumn=i"=> \$uniqueColumn,
+            "collapseString=s"=> \$collapseString
+      )
+    or pod2usage(0) && exit;
+
+pod2usage(1) && exit if ($help);
+
+
+##############################
+# Global variables
+##############################
+my %storageHash;
+
+##############################
+# Code
+##############################
+
+##############################
+### decrement uniqueColumn to make 0-based
+$uniqueColumn--;
+
+##############################
+### Make sure uniqueColumn is specified
+if($uniqueColumn eq "") {
+    die "You must specify uniqueColumn\n";
+}
+
+##############################
+### Fill up %storageHash with the data
+open (INPUT, "<", $input) or die "Cannot open input file\n";
+while(my $line = <INPUT>){
+    chomp $line;
+    my @columns = split "\t", $line;
+    for(my $i = 0; $i < scalar(@columns); $i++) {
+        push @{ $storageHash{$columns[$uniqueColumn]}[$i] }, $columns[$i];
+    }
+}
+
+##############################
+### Go through %storageHash and collapse the identical 
+for my $key (keys %storageHash) {
+    print $key;
+    for(my $i = 0; $i < scalar(@{ $storageHash{$key} }); $i++) {
+        if($i != $uniqueColumn) {
+        my @newArray = uniqueArray(@{ $storageHash{$key}[$i]});
+        print "\t", join($collapseString, @newArray),
+    }
+    }
+    print "\n";
+}
+
+
+
+##############################
+# Subfunctions
+##############################
+sub uniqueArray {
+    my @inputArray = @_;
+    my @outputArray;
+    my %knownHash;
+    for my $element (@inputArray) {
+        if(!exists($knownHash{$element})) {
+            push @outputArray, $element;
+            $knownHash{$element} = 1;
+        }
+    }
+    return @outputArray;
+}
+
+##############################
+# POD
+##############################
+
+#=pod
+
+=head SYNOPSIS
+
+Summary:
+
+    .pl - generates a consensus for a specified gene in a specified taxa
+
+Usage:
+
+    perl .pl [options]
+
+
+=head OPTIONS
+
+Options:
+
+    --verbose
+    --help
+
+=cut</code></pre>
+</div>
+<div class="row">
+<button class="source bash toggle btn btn-xs btn-primary">
+<span class="glyphicon glyphicon-chevron-down"></span> bash source
+</button>
+<pre style=""><code class="source bash">for file in loadingsTaxa/*Taxa.txt
+do
+  base=${file%.txt}
+  perl ~/SerreDLab-3/cannonm3/scripts/collapseColumns.pl -u 1 -c "/" -i $file  | sort -k1,1r > ${base}Fixed.txt 
+done</code></pre>
+</div>
+</div>
+</div>
+<div class="navbar navbar-fixed-bottom navbar-inverse">
+<div class="container">
+<div class="navbar-header">
+<button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-responsive-collapse">
+<span class="icon-bar"></span> <span class="icon-bar"></span> <span class="icon-bar"></span>
+</button>
+</div>
+<div id="bottom-navbar" class="navbar-collapse collapse navbar-responsive-collapse">
+<ul class="nav navbar-nav navbar-right">
+<li class="nav">
+<p class="navbar-text">
+Toggle
+</p>
+</li>
+<li class="dropup">
+<a href="#" class="dropdown-toggle" data-toggle="dropdown">Code <b class="caret"></b></a>
+<ul class="dropdown-menu">
+<li class="dropdown-header">
+Languages
+</li>
+<li class="active">
+<a href="#" class="toggle-global source R" type="source.R">R</a>
+</li>
+<li class="active">
+<a href="#" class="toggle-global source perl" type="source.perl">perl</a>
+</li>
+<li class="active">
+<a href="#" class="toggle-global source bash" type="source.bash">bash</a>
+</li>
+<li>
+<a href="#" type="all-source" class="toggle-global">All</a>
+</li>
+</ul>
+</li>
+<li class="active">
+<a href="#" type="figure" class="toggle-global">Figures</a>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+<div id="push">
+
+</div>
+<div id="footer">
+<div class="container">
+<p class="text-muted" id="credit">
+Styled with <a href="https://github.com/jimhester/knitrBootstrap">knitrBootstrap</a>
+</p>
+</div>
+</div>
+<link rel="stylesheet" id="theme" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css" media="screen"></link><link rel="stylesheet" id="highlight" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/7.3/styles/default.min.css" media="screen"></link>
+</div>
+</body>
+</html>
